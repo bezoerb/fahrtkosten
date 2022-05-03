@@ -84,6 +84,10 @@ const calculateTickets = (
   oneWay: boolean,
   ticketInfos: TicketInfo[]
 ): TicketInfo[] => {
+  const now = new Date();
+  const hour = now.getHours();
+
+  // const is9 = (hour >= 1 && hour < 6) || (hour >= 9 && hour < 18);
   const hvvAdultSingle = ticketInfos.find((info) => info.tariffKindID === 1);
   const hvvAdultDay = ticketInfos.find((info) => info.tariffKindID === 21);
   const hvvChildSingle = ticketInfos.find((info) => info.tariffKindID === 2);
@@ -114,7 +118,7 @@ const calculateTickets = (
   let groupPrice = Infinity;
   let groupTickets = [];
 
-  if (adults + children > 1) {
+  if (adults + children > 1 && hvvGroup) {
     const adultsLeft = Math.max(0, adults - 5);
     const placesLeft = Math.max(0, 5 - adults);
     const childrenLeft = Math.max(0, children - placesLeft);
