@@ -67,7 +67,7 @@ type CNResponse = {
 export const useGeocode = (key: 'start' | 'dest') => {
   const { target } = useStore((state) => ({ target: state?.input?.[key] }), shallow);
 
-  const debouncedTarget: string = useDebounce<string>(target, 500);
+  const debouncedTarget: string = useDebounce<string>(target, 300);
 
   const swrMapBox = useSWR<FeatureCollection>(
     debouncedTarget ? ['/api/geocode', { target: debouncedTarget }] : null,
