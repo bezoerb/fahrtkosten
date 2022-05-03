@@ -34,7 +34,7 @@ const Home: NextPage = () => {
             Settings
           </button>
         </div>
-        <div className="md:grid md:grid-cols-2 w-full max-w-6xl mx-auto gap-8 ">
+        <div className="md:grid md:grid-cols-2 w-full h-full max-w-6xl mx-auto gap-8 ">
           <Form className="mb-8"/>
           <Result className="mt-6"/>
         </div>

@@ -1,8 +1,8 @@
+import React from 'react';
 import { useTravelCosts } from '../hooks/useTravelCosts';
 
-export const Result = (props) => {
+const ResultComponent = (props) => {
   const result = useTravelCosts();
-
   return (
     <div className={props.className}>
       {Boolean(result?.ready) && (
@@ -19,8 +19,8 @@ export const Result = (props) => {
               <br />
               <b>Dauer (eine fahrt): </b> {Math.round(result?.hvv?.duration)} min <br />
               <b>Tickets:</b>
-              {result?.hvv?.tickets.map((ticket, index) => (
-                <div key={index}> - {ticket.tariffKindLabel}</div>
+              {result?.hvv?.tickets?.map((ticket, index) => (
+                <div key={index}> - {ticket?.tariffKindLabel}</div>
               ))}
               <br />
             </div>
@@ -57,3 +57,5 @@ export const Result = (props) => {
     </div>
   );
 };
+
+export const Result = React.memo(ResultComponent);

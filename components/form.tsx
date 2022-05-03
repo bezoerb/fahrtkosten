@@ -15,7 +15,7 @@ export const Form = (props) => {
   return (
     <form className={props.className}>
       <Input label="Start" value={input.start} name="start" onChange={onChange} className="mb-3" />
-      <Input label="Ziel" value={input.dest} name="dest" onChange={onChange}  className="mb-3"/>
+      <Input label="Ziel" value={input.dest} name="dest" onChange={onChange} className="mb-3" />
       <label className="block">
         <input type="checkbox" name="oneWay" onChange={onChange} defaultChecked={input.oneWay} />
         &nbsp;Einfache Fahrt?

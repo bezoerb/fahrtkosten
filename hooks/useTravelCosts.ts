@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import useSWR from 'swr';
+import useSWR from 'swr/immutable';
+import { useImmer } from 'use-immer';
 
 import { useStore } from '../lib/store';
 import { useGeocode } from './useGeocode';
@@ -124,8 +125,8 @@ const calculateTickets = (
 
   if (naivePrice < groupPrice && naivePrice < dayPrice) {
     return [
-      ...Array.from(Array(Math.max(0,adults))).flatMap(() => ticketsAdult),
-      ...Array.from(Array(Math.max(0,children))).flatMap(() => ticketsChild),
+      ...Array.from(Array(Math.max(0, adults))).flatMap(() => ticketsAdult),
+      ...Array.from(Array(Math.max(0, children))).flatMap(() => ticketsChild),
     ];
   }
 
@@ -138,9 +139,9 @@ const calculateTickets = (
 
 export const useTravelCosts = () => {
   const input = useStore((state) => state.input);
-  const [fuelPrice, setFuelPrice] = useState(0);
 
-  const [result, setResult] = useState<Result>();
+  const [fuelPrice, setFuelPrice] = useState(0);
+  const [result, setResult] = useImmer<Result>({} as Result);
 
   const { data: locationStart } = useGeocode('start');
 
@@ -152,7 +153,7 @@ export const useTravelCosts = () => {
 
   const { data: directions } = useSWR(
     () =>
-      locationStart && locationDest
+      locationStart?.latitude && locationDest?.latitude
         ? [
             '/api/directions',
             {
@@ -168,7 +169,7 @@ export const useTravelCosts = () => {
 
   const { data: hvv } = useSWR(
     () =>
-      locationStart && locationDest
+      locationStart?.latitude && locationDest?.latitude
         ? [
             '/api/hvv',
             {
@@ -217,14 +218,33 @@ export const useTravelCosts = () => {
       tickets: hvvTickets,
     };
 
-    setResult({
-      start: locationStart?.name ?? '',
-      dest: locationDest?.name ?? '',
-      hvv: hvvData,
-      fuelPrice,
-      carShortest,
-      carFastest,
-      ready: carFastest.duration !== Infinity,
+    setResult((draft) => {
+      if (draft.start !== locationStart?.name ?? '') {
+        draft.start = locationStart?.name ?? '';
+      }
+      if (draft.dest !== locationDest?.name ?? '') {
+        draft.dest = locationDest?.name ?? '';
+      }
+
+      if (JSON.stringify(draft.hvv) !== JSON.stringify(hvvData)) {
+        draft.hvv = hvvData;
+      }
+
+      if (draft.fuelPrice !== fuelPrice) {
+        draft.fuelPrice = fuelPrice;
+      }
+
+      if (JSON.stringify(draft.carShortest) !== JSON.stringify(carShortest)) {
+        draft.carShortest = carShortest;
+      }
+
+      if (JSON.stringify(draft.carFastest) !== JSON.stringify(carFastest)) {
+        draft.carFastest = carFastest;
+      }
+
+      if (draft.ready !== (carFastest.duration !== Infinity)) {
+        draft.ready = carFastest.duration !== Infinity;
+      }
     });
   }, [
     locationStart,
@@ -236,6 +256,7 @@ export const useTravelCosts = () => {
     input.fuelConsumption,
     input.adults,
     input.children,
+    setResult,
   ]);
 
   useEffect(() => {
