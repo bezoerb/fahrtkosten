@@ -29,7 +29,7 @@ const ResultComponent = (props) => {
   const result = useTravelCosts();
 
   const cheapest = Math.min(
-    result?.hvv?.price ?? Infinity,
+    result?.hvv?.duration ? result?.hvv?.price : Infinity,
     result?.carShortest?.price ?? Infinity,
     result?.carFastest?.price ?? Infinity
   );
@@ -43,9 +43,10 @@ const ResultComponent = (props) => {
             <br />
             <b>nach:</b> {result.dest}
           </div>
-          <span className={result?.hvv?.price === cheapest ? 'text-green-700' : ''}>
-            <h3 className="font-bold text-lg mb-2">HVV</h3>
-            {Boolean(result?.hvv?.duration) && (
+
+          {Boolean(result?.hvv?.duration) && (
+            <span className={result?.hvv?.price === cheapest ? 'text-green-700' : ''}>
+              <h3 className="font-bold text-lg mb-2">HVV</h3>
               <div className="mb-6">
                 <b>Preis:</b> {result?.hvv?.price ? formatPrice(result.hvv.price) : '-'}
                 <br />
@@ -77,9 +78,8 @@ const ResultComponent = (props) => {
                 ))}
                 <br />
               </div>
-            )}
-          </span>
-          {!Boolean(result?.hvv?.duration) && <div className="mb-6">unavailable</div>}
+            </span>
+          )}
           {result?.carShortest?.distance !== result?.carFastest?.distance && (
             <>
               <span className={result?.carShortest?.price === cheapest ? 'text-green-700' : ''}>
