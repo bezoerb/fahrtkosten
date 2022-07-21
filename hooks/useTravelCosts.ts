@@ -87,6 +87,7 @@ const calculateTickets = (
   const now = new Date();
   const hour = now.getHours();
 
+
   // const is9 = (hour >= 1 && hour < 6) || (hour >= 9 && hour < 18);
   const hvvAdultSingle = ticketInfos.find((info) => info.tariffKindID === 1);
   const hvvAdultDay = ticketInfos.find((info) => info.tariffKindID === 21);
@@ -94,6 +95,7 @@ const calculateTickets = (
   const hvvChildDay = ticketInfos.find((info) => info.tariffKindID === 12);
   const hvvGroup = ticketInfos.find((info) => info.tariffKindID === 23);
   const hvvDay = ticketInfos.find((info) => info.tariffKindID === 11);
+  const specialTicket = ticketInfos.find((info) => info.tariffKindID === 49);
 
   const ticketsAdult = (
     oneWay ? [hvvAdultSingle] : hvvAdultDay ? [hvvAdultDay] : [hvvAdultSingle, hvvAdultSingle]
@@ -106,6 +108,11 @@ const calculateTickets = (
     return [];
   }
 
+  const specialTickets = Array.from(Array(Math.max(0, adults + children)))
+    .map(() => specialTicket)
+    .map((v) => v);
+
+  const specialPrice = getPrice(specialTickets);
   const naivePrice = getPrice(ticketsAdult) * adults + getPrice(ticketsChild) * children;
   let dayPrice = Infinity;
   let dayTickets = [];
@@ -127,18 +134,38 @@ const calculateTickets = (
     groupPrice = getPrice(groupTickets);
   }
 
-  if (naivePrice < groupPrice && naivePrice < dayPrice) {
-    return [
-      ...Array.from(Array(Math.max(0, adults))).flatMap(() => ticketsAdult),
-      ...Array.from(Array(Math.max(0, children))).flatMap(() => ticketsChild),
-    ];
-  }
+  const prices = [
+    {
+      price: naivePrice,
+      tickets: [
+        ...Array.from(Array(Math.max(0, adults))).flatMap(() => ticketsAdult),
+        ...Array.from(Array(Math.max(0, children))).flatMap(() => ticketsChild),
+      ],
+    },
+    {
+      price: dayPrice,
+      tickets: dayTickets,
+    },
+    {
+      price: groupPrice,
+      tickets: groupTickets,
+    },
+    {
+      price: specialPrice,
+      tickets: specialTickets,
+    },
+  ];
 
-  if (dayPrice < groupPrice) {
-    return dayTickets;
-  }
+  return prices.reduce(
+    (res, data) => {
+      if (res.price > data.price) {
+        return data;
+      }
 
-  return groupTickets;
+      return res;
+    },
+    { price: Infinity, tickets: [] }
+  ).tickets;
 };
 
 export const useTravelCosts = () => {
