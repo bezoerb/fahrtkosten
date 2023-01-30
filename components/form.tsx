@@ -1,14 +1,15 @@
-import shallow from 'zustand/shallow';
-import { useStore } from '../lib/store';
+import { useAppContext } from '../lib/store';
 import { Input } from './input';
 
 export const Form = (props) => {
-  const { input, setInput } = useStore((state) => ({ input: state.input, setInput: state.setInput }), shallow);
+  const { input, setInput } = useAppContext((state) => ({ input: state.input, setInput: state.setInput }));
   const onChange = (event) => {
     let value = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
     if (event.target.type === 'number') {
       value = parseFloat(value);
     }
+
+    console.log(`setInput({ ${event.target.name}: ${value} })`)
     setInput({ [event.target.name]: value });
   };
 

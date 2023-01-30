@@ -37,12 +37,11 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<any>) 
   url.searchParams.set('proximity', 'ip');
   url.searchParams.set('language', 'de');
   url.searchParams.set('types', 'place,postcode,address');
-  url.searchParams.set(
-    'access_token',
-    process.env.MAPBOX_ACCESS_TOKEN
-  );
+  url.searchParams.set('access_token', process.env.MAPBOX_ACCESS_TOKEN);
 
   req.url = url.toString();
+
+  console.log('MAPBOX:', req.url);
 
   proxy.web(req, res, {
     target: 'https://api.mapbox.com',

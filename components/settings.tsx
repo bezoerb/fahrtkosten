@@ -1,10 +1,9 @@
-import { useStore } from '../lib/store';
-import shallow from 'zustand/shallow';
+import { useAppContext } from '../lib/store';
 import { Input } from './input';
 import { Select } from './select';
 
 export const Settings = (props) => {
-  const { input, setInput } = useStore((state) => ({ input: state.input, setInput: state.setInput }), shallow);
+  const { input, setInput } = useAppContext((state) => ({ input: state.input, setInput: state.setInput }));
   const onChange = (event) => {
     let value = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
     if (event.target.type === 'number') {

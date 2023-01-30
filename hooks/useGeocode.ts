@@ -1,8 +1,7 @@
 import stringSimilarity from 'string-similarity';
 import useSWR from 'swr/immutable';
-import shallow from 'zustand/shallow';
 import { getJSON } from '../lib/helper';
-import { useStore } from '../lib/store';
+import { useAppContext } from '../lib/store';
 import { useDebounce } from './useDebounce';
 
 type Context = {
@@ -65,7 +64,7 @@ type CNResponse = {
 };
 
 export const useGeocode = (key: 'start' | 'dest') => {
-  const { target } = useStore((state) => ({ target: state?.input?.[key] }), shallow);
+  const target = useAppContext((state) => state?.input?.[key]) || '';
 
   const debouncedTarget: string = useDebounce<string>(target, 300);
 
@@ -73,6 +72,7 @@ export const useGeocode = (key: 'start' | 'dest') => {
     debouncedTarget ? ['/api/geocode', { target: debouncedTarget }] : null,
     getJSON
   );
+
   const swrHvv = useSWR<CNResponse>(debouncedTarget ? ['/api/hvv-check-name', { q: debouncedTarget }] : null, getJSON);
 
   const hvvData = {

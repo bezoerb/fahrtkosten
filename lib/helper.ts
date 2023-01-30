@@ -1,12 +1,12 @@
 export const getUrl = (uri, params) => {
   const url = new URL(uri, 'http://localhost:3000/');
-  Object.entries<string>(params).forEach(([key, value]) => url.searchParams.set(key, value));
+  Object.entries<string>(params || {}).forEach(([key, value]) => url.searchParams.set(key, value));
 
   return url.toString().replace('http://localhost:3000/', '/');
 };
 
 export const get = async (uri, params) => {
-  const url = getUrl(uri, params);
+  const url = getUrl(uri, params || {});
   const options = {
     method: 'GET',
     headers: {
@@ -17,8 +17,8 @@ export const get = async (uri, params) => {
   return fetch(url, options);
 };
 
-export const getJSON = async (uri, params) => {
-  const response = await get(uri, params);
+export const getJSON = async ([uri, params]) => {
+  const response = await get(uri, params || {});
   return response.json();
 };
 

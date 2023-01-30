@@ -38,7 +38,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<any>) 
 
   req.url = url.toString();
 
-  // res.status(200).json({ url  })
   proxy.web(req, res, {
     target: 'https://creativecommons.tankerkoenig.de',
     changeOrigin: true,
