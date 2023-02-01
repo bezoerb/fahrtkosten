@@ -21,7 +21,7 @@ const Home: NextPage = () => {
       <main className={styles.main}>
         <h1 className="text-3xl font-bold  text-left mb-12 w-full max-w-6xl mx-auto">Fahrtkosten</h1>
         <div
-          className={classNames('absolute left-0 top-0 h-full p-8 transition-transform bg-white border shadow-md', {
+          className={classNames('z-1 absolute left-0 top-0 h-full p-8 transition-transform bg-white border shadow-md', {
             '-translate-x-full': !settingOpen,
             'translate-x-0': settingOpen,
           })}
