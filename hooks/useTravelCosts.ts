@@ -67,8 +67,10 @@ export const useTravelCosts = () => {
         draft.carFastest = fastest;
       }
 
-      if (draft.ready !== (fastest?.duration !== Infinity)) {
-        draft.ready = fastest?.duration !== Infinity;
+      const ready = fastest && fastest?.duration !== Infinity
+
+      if (draft.ready !== ready) {
+        draft.ready = ready;
       }
     });
   }, [locationStart, locationDest, fastest, shortest, setResult, hvvResult, fuelPrice]);
