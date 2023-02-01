@@ -11,7 +11,6 @@ export const Form = (props) => {
       value = parseFloat(value);
     }
 
-    console.log(`setInput({ ${event.target.name}: ${value} })`);
     setInput({ [event.target.name]: value });
   };
 

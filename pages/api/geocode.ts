@@ -41,8 +41,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<any>) 
 
   req.url = url.toString();
 
-  console.log('MAPBOX:', req.url);
-
   proxy.web(req, res, {
     target: 'https://api.mapbox.com',
     changeOrigin: true,
