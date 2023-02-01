@@ -53,10 +53,8 @@ interface AppState extends AppProps {
   setResult: (result: Partial<ResultData>) => void;
 }
 
-let store;
-
-const initialState = {
-  input: { start: '', dest: '', fuelType: 'e5', oneWay: false, fuelConsumption: 11, adults: 1, children: 0 },
+const initialState: AppProps = {
+  input: { start: '', dest: '', fuelType: FuelType.E5, oneWay: false, fuelConsumption: 11, adults: 1, children: 0 },
   result: {},
 };
 
@@ -71,11 +69,8 @@ const setLocalStorage = (key, value) => {
 type AppStore = ReturnType<typeof createAppStore>;
 
 const createAppStore = (initProps?: Partial<AppProps>) => {
-  const DEFAULT_PROPS: AppProps = {
-    ...initialState,
-  };
   return createStore<AppState>()((set) => ({
-    ...DEFAULT_PROPS,
+    ...initialState,
     ...merge(initProps || {},  getLocalStorage('settings') || {}),
     setInput: (input) => {
       set((state) => {
