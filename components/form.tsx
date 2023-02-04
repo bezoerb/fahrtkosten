@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useLocation } from '../hooks/useLocation';
 import { useAppContext } from '../lib/store';
 import { Input } from './input';
@@ -20,8 +20,6 @@ export const Form = (props) => {
       setInput({ start: location.name });
     }
   }, [location.name, setInput]);
-
-  const [enabled, setEnabled] = useState(true);
 
   return (
     <form className={props.className}>

@@ -1,9 +1,10 @@
-import { createContext, useContext, useLayoutEffect } from 'react';
+import { createContext, useContext } from 'react';
 // import { create } from 'zustand';
 // import { UseBoundStore } from 'zustand/index';
 // import createContext from 'zustand/context';
 import { createStore, useStore } from 'zustand';
-import {shallow} from 'zustand/shallow';
+import { shallow } from 'zustand/shallow';
+import { devtools } from 'zustand/middleware';
 
 // Provider wrapper
 import { useRef } from 'react';
@@ -11,7 +12,7 @@ import {} from 'react';
 
 import { take } from './helper';
 import { merge } from 'merge-anything';
-import { FuelType } from './types';
+import { FuelType, Location } from './types';
 
 interface CarData {
   duration: number;
@@ -41,6 +42,8 @@ interface ResultData {
   carFastest?: CarData;
   carShortest?: CarData;
   hvv?: HvvData;
+  start?: Location;
+  end?: Location;
 }
 
 interface AppProps {
@@ -54,7 +57,15 @@ interface AppState extends AppProps {
 }
 
 const initialState: AppProps = {
-  input: { start: '', dest: '', fuelType: FuelType.E5, oneWay: false, fuelConsumption: 11, adults: 1, children: 0 },
+  input: {
+    start: '',
+    dest: '',
+    fuelType: FuelType.E5,
+    oneWay: false,
+    fuelConsumption: 11,
+    adults: 1,
+    children: 0,
+  },
   result: {},
 };
 
@@ -69,25 +80,26 @@ const setLocalStorage = (key, value) => {
 type AppStore = ReturnType<typeof createAppStore>;
 
 const createAppStore = (initProps?: Partial<AppProps>) => {
-  return createStore<AppState>()((set) => ({
-    ...initialState,
-    ...merge(initProps || {},  getLocalStorage('settings') || {}),
-    setInput: (input) => {
-      set((state) => {
-        const nextInput = { ...state.input, ...input };
+  return createStore<AppState>()(
+    devtools((set) => ({
+      ...merge(initialState, initProps || {}, getLocalStorage('settings') || {}),
+      setInput: (input) => {
+        set((state) => {
+          const nextInput = { ...state.input, ...input };
 
-        setLocalStorage('settings', { input: take(nextInput, keep) });
-        return { ...state, input: nextInput };
-      });
-    },
+          setLocalStorage('settings', { input: take(nextInput, keep) });
+          return { ...state, input: nextInput };
+        });
+      },
 
-    setResult: (result) => {
-      set((state) => ({
-        ...state,
-        result: { ...state.result, ...result },
-      }));
-    },
-  }));
+      setResult: (result) => {
+        set((state) => ({
+          ...state,
+          result: { ...state.result, ...result },
+        }));
+      },
+    }))
+  );
 };
 
 export const Context = createContext<AppStore | null>(null);
@@ -101,65 +113,10 @@ export const Provider = ({ children, ...props }: AppProviderProps) => {
   }
 
   return <Context.Provider value={storeRef.current}>{children}</Context.Provider>;
+};
+
+export function useAppContext<T>(selector: (state: AppState) => T, equalityFn?: (left: T, right: T) => boolean): T {
+  const store = useContext(Context);
+  if (!store) throw new Error('Missing Context.Provider in the tree');
+  return useStore(store, selector, equalityFn || shallow);
 }
-
-export function useAppContext<T>(
-  selector: (state: AppState) => T,
-  equalityFn?: (left: T, right: T) => boolean
-): T {
-  const store = useContext(Context)
-  if (!store) throw new Error('Missing Context.Provider in the tree')
-  return useStore(store, selector, equalityFn || shallow)
-}
-
-
-// export const Provider = zustandContext.Provider;
-// An example of how to get types
-/** @type {import('zustand/index').UseStore<typeof initialState>} */
-// export const useStore: UseBoundStore<AppState> = zustandContext.useStore as UseBoundStore<AppState>;
-
-// export const initializeStore = (preloadedState: Partial<AppState> = {}) => {
-//   return create<AppState>((set) => ({
-//     ...merge(initialState, preloadedState, getLocalStorage('settings') || {}),
-//     setInput: (input) => {
-//       set((state) => {
-//         const nextInput = { ...state.input, ...input };
-
-//         setLocalStorage('settings', { input: take(nextInput, keep) });
-//         return { ...state, input: nextInput };
-//       });
-//     },
-
-//     setResult: (result) => {
-//       set((state) => ({
-//         ...state,
-//         result: { ...state.result, ...result },
-//       }));
-//     },
-//   }));
-// };
-
-// export function useCreateStore(initialState) {
-//   // For SSR & SSG, always use a new store.
-//   if (typeof window === 'undefined') {
-//     return () => initializeStore(initialState);
-//   }
-
-//   // For CSR, always re-use same store.
-//   store = store ?? initializeStore(initialState);
-//   // And if initialState changes, then merge states in the next render cycle.
-//   //
-//   // eslint complaining "React Hooks must be called in the exact same order in every component render"
-//   // is ignorable as this code runs in same order in a given environment
-//   // eslint-disable-next-line react-hooks/rules-of-hooks
-//   useLayoutEffect(() => {
-//     if (initialState && store) {
-//       store.setState({
-//         ...store.getState(),
-//         ...initialState,
-//       });
-//     }
-//   }, [initialState]);
-
-//   return () => store;
-// }

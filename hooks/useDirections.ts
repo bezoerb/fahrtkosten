@@ -4,9 +4,19 @@ import { useImmer } from 'use-immer';
 import { getJSON } from '../lib/helper';
 
 import { useAppContext } from '../lib/store';
-import { useGeocode } from './useGeocode';
-import type { DirectionsResponse, Location, CarResult } from '../lib/types';
+import type { DirectionsResponse, Location, CarResult, Route, GeoJson } from '../lib/types';
 import { useTankerkoenig } from './useTankerkoenig';
+
+const getGeojson = (route: Route): GeoJson => ({
+  type: 'FeatureCollection',
+  features: [
+    {
+      type: 'Feature',
+      properties: {},
+      geometry: route.geometry,
+    },
+  ],
+});
 
 export const useDirections = (start: Location | undefined, end: Location | undefined) => {
   const input = useAppContext((state) => state.input);
@@ -44,6 +54,7 @@ export const useDirections = (start: Location | undefined, end: Location | undef
         distance: fastestRoute.distance / 1000,
         duration: fastestRoute.duration / 60,
         price: calculatePrice(fastestRoute.distance, price, input.fuelConsumption, input.oneWay),
+        geojson: getGeojson(fastestRoute),
       });
     }
     if (shortestRoute) {
@@ -51,6 +62,7 @@ export const useDirections = (start: Location | undefined, end: Location | undef
         distance: shortestRoute.distance / 1000,
         duration: shortestRoute.duration / 60,
         price: calculatePrice(shortestRoute.distance, price, input.fuelConsumption, input.oneWay),
+        geojson: getGeojson(shortestRoute),
       });
     }
   }, [input.fuelConsumption, input.oneWay, price, swr.data]);

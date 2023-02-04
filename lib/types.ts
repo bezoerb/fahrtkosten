@@ -3,6 +3,11 @@ export type Location = {
   longitude: number;
 };
 
+export type Position = Location & {
+  name: string;
+  text: string;
+};
+
 export enum FuelType {
   E5 = 'e5',
   E10 = 'e10',
@@ -66,10 +71,7 @@ export type Route = {
       summary: string;
     }
   ];
-  geometry: {
-    coordinates: MapboxLocation[];
-    type: string;
-  };
+  geometry: GeoJSON.Geometry;
 };
 
 export type DirectionsResponse = {
@@ -79,10 +81,22 @@ export type DirectionsResponse = {
   uuid: string;
 };
 
+export type GeoJson = {
+  type: 'FeatureCollection';
+  features: [
+    {
+      type: 'Feature';
+      properties: {};
+      geometry: Route['geometry'];
+    }
+  ];
+};
+
 export type CarResult = {
   duration: number;
   distance: number;
   price: number;
+  geojson: GeoJson;
 };
 
 type HvvCoordinateValue = {
@@ -184,25 +198,26 @@ type HvvScheduleElement = {
   serviceId?: number;
 };
 
+export type HvvSchedule = {
+  routeId: number;
+  start: HvvCoordinate;
+  dest: HvvCoordinate;
+  time: number;
+  footpathTime: number;
+  plannedDepartureTime: string;
+  plannedArrivalTime: string;
+  tariffInfos: HvvTariffInfo[];
+  scheduleElements: HvvScheduleElement[];
+}
+
 export type HvvResponse = {
   returnCode: string;
-  schedules: [
-    {
-      routeId: number;
-      start: HvvCoordinate;
-      dest: HvvCoordinate;
-      time: number;
-      footpathTime: number;
-      plannedDepartureTime: string;
-      plannedArrivalTime: string;
-      tariffInfos: HvvTariffInfo[];
-      scheduleElements: HvvScheduleElement[];
-    }
-  ];
+  schedules: HvvSchedule[];
 };
 
 export type HvvResult = {
   price: number;
   duration: number;
   tickets: TicketInfo[];
+  geojson: GeoJson;
 };

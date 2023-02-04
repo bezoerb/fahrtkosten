@@ -2,6 +2,7 @@ import stringSimilarity from 'string-similarity';
 import useSWR from 'swr/immutable';
 import { getJSON } from '../lib/helper';
 import { useAppContext } from '../lib/store';
+import { Position } from '../lib/types';
 import { useDebounce } from './useDebounce';
 
 type Context = {
@@ -75,14 +76,14 @@ export const useGeocode = (key: 'start' | 'dest') => {
 
   const swrHvv = useSWR<CNResponse>(debouncedTarget ? ['/api/hvv-check-name', { q: debouncedTarget }] : null, getJSON);
 
-  const hvvData = {
+  const hvvData: Position = {
     latitude: swrHvv?.data?.results?.[0]?.coordinate?.y,
     longitude: swrHvv?.data?.results?.[0]?.coordinate?.x,
     name: swrHvv?.data?.results?.[0]?.combinedName,
     text: swrHvv?.data?.results?.[0]?.name,
   };
 
-  const mapBoxData = {
+  const mapBoxData: Position = {
     latitude: swrMapBox?.data?.features?.[0]?.center?.[1],
     longitude: swrMapBox?.data?.features?.[0]?.center?.[0],
     name: swrMapBox?.data?.features?.[0]?.place_name,

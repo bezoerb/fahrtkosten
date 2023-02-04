@@ -3,7 +3,7 @@ import useSWR from 'swr/immutable';
 import { getJSON } from '../lib/helper';
 import { useAppContext } from '../lib/store';
 
-import type { HvvResponse, HvvResult, Location, TicketInfo } from '../lib/types';
+import type { GeoJson, HvvResponse, HvvResult, HvvSchedule, Location, TicketInfo } from '../lib/types';
 
 const getPrice = (ticketInfos: TicketInfo[]) => {
   const price = ticketInfos.reduce((res, info) => res + info?.basePrice ?? 0, 0);
@@ -99,6 +99,27 @@ const calculateTickets = (
   ).tickets;
 };
 
+const getGeojson = (schedule: HvvSchedule): GeoJson => {
+  const geometry: GeoJSON.Geometry = {
+    type: 'LineString',
+    coordinates:
+      schedule?.scheduleElements?.flatMap((element) => {
+        return element?.paths?.flatMap((path) => path?.track?.map((pos) => [pos.x, pos.y]) ?? []) ?? [];
+      }) ?? [],
+  };
+
+  return {
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        properties: {},
+        geometry: geometry,
+      },
+    ],
+  };
+};
+
 export const useHvv = (start: Location | undefined, end: Location | undefined) => {
   const [result, setResult] = useState<HvvResult>();
 
@@ -128,6 +149,7 @@ export const useHvv = (start: Location | undefined, end: Location | undefined) =
       duration: swr.data?.schedules?.[0]?.time,
       price: hvvPrice,
       tickets: hvvTickets,
+      geojson: getGeojson(swr.data?.schedules?.[0]),
     });
   }, [input.adults, input.children, input.oneWay, swr.data]);
 

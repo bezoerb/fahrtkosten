@@ -4,7 +4,7 @@ import { useImmer } from 'use-immer';
 import { getJSON } from '../lib/helper';
 
 import { useAppContext } from '../lib/store';
-import { CarResult, HvvResult } from '../lib/types';
+import { CarResult, HvvResult, Position } from '../lib/types';
 import { useDirections } from './useDirections';
 import { useGeocode } from './useGeocode';
 import { useHvv } from './useHvv';
@@ -23,9 +23,10 @@ type Result = {
   carFastest: CarResult;
   hvv: HvvResult;
   fuelPrice: number;
-  start: string;
-  dest: string;
+  start: Position;
+  dest: Position;
   ready: boolean;
+
 };
 
 export const useTravelCosts = () => {
@@ -44,11 +45,11 @@ export const useTravelCosts = () => {
 
   useEffect(() => {
     setResult((draft) => {
-      if (draft.start !== locationStart?.name ?? '') {
-        draft.start = locationStart?.name ?? '';
+      if (JSON.stringify(draft.start) !== JSON.stringify(locationStart)) {
+        draft.start = locationStart;
       }
-      if (draft.dest !== locationDest?.name ?? '') {
-        draft.dest = locationDest?.name ?? '';
+      if (JSON.stringify(draft.dest) !== JSON.stringify(locationDest)) {
+        draft.dest = locationDest;
       }
 
       if (JSON.stringify(draft.hvv) !== JSON.stringify(hvvResult)) {
@@ -67,7 +68,7 @@ export const useTravelCosts = () => {
         draft.carFastest = fastest;
       }
 
-      const ready = fastest && fastest?.duration !== Infinity
+      const ready = fastest && fastest?.duration !== Infinity;
 
       if (draft.ready !== ready) {
         draft.ready = ready;

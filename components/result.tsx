@@ -1,5 +1,7 @@
 import React from 'react';
 import { useTravelCosts } from '../hooks/useTravelCosts';
+import { colorCarFastest, colorCarShortest, colorTrain } from '../lib/constants';
+import { Color } from './color';
 
 const formatTime = (_minutes: number) => {
   const minutes = Math.round(_minutes || 0);
@@ -39,14 +41,16 @@ const ResultComponent = (props) => {
       {Boolean(result?.ready) && (
         <>
           <div className="mb-8">
-            <b>Von:</b> {result.start}
+            <b>Von:</b> {result.start.name}
             <br />
-            <b>nach:</b> {result.dest}
+            <b>nach:</b> {result.dest.name}
           </div>
 
           {Boolean(result?.hvv?.duration) && (
             <span className={result?.hvv?.price === cheapest ? 'text-green-700' : ''}>
-              <h3 className="font-bold text-lg mb-2">HVV</h3>
+              <h3 className="font-bold text-lg mb-2">
+                HVV
+              </h3>
               <div className="mb-6">
                 <b>Preis:</b> {result?.hvv?.price ? formatPrice(result.hvv.price) : '-'}
                 <br />
@@ -76,7 +80,6 @@ const ResultComponent = (props) => {
                     </a>
                   </div>
                 ))}
-                <br />
               </div>
             </span>
           )}
@@ -89,7 +92,9 @@ const ResultComponent = (props) => {
                     <i className="font-normal text-sm">({result.fuelPrice} €/l)</i>
                   </small>
                 </h3>
-                <h4 className="font-normal mt-2 mb-1">Kürzeste Route</h4>
+                <h4 className="font-normal mt-2 mb-1">
+                  Kürzeste Route
+                </h4>
                 <b>Preis:</b> {formatPrice(result?.carShortest?.price)}
                 <br />
                 <b>Dauer (eine fahrt): </b> {formatTime(result?.carShortest?.duration)}
@@ -98,7 +103,9 @@ const ResultComponent = (props) => {
               </span>
               <span className={result?.carFastest?.price === cheapest ? 'text-green-700' : ''}>
                 <br />
-                <h4 className="font-normal mt-2 mb-1">Schnellste Route</h4>
+                <h4 className="font-normal mt-2 mb-1">
+                  Schnellste Route
+                </h4>
                 <b>Preis:</b> {formatPrice(result?.carFastest?.price)}
                 <br />
                 <b>Dauer (eine fahrt): </b> {formatTime(result?.carFastest?.duration)}
