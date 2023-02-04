@@ -130,6 +130,11 @@ export const Map = (props) => {
         dragPan={false}
         dragRotate={false}
         ref={mapRef}
+        initialViewState={{
+          zoom: 4,
+          latitude: 51.1520101,
+          longitude: 6.9574991,
+        }}
         mapStyle="mapbox://styles/mapbox/streets-v9"
       >
         {result?.hvv?.geojson && (
