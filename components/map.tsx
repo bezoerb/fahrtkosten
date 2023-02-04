@@ -77,6 +77,8 @@ const Legend = (props: LegendProps) => {
   );
 };
 
+process.env.REACT_APP_MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_ACCESS_TOKEN;
+
 export const Map = (props) => {
   const result = useTravelCosts();
   const mapRef = useRef<MapRef>();
@@ -116,9 +118,11 @@ export const Map = (props) => {
       setHasShortest(shortestAvailable);
     }
   }, [result]);
+
   return (
     <div className={props.className}>
       <MapboxMap
+        reuseMaps={true}
         attributionControl={false}
         scrollZoom={false}
         touchPitch={false}
@@ -126,7 +130,6 @@ export const Map = (props) => {
         dragPan={false}
         dragRotate={false}
         ref={mapRef}
-        mapboxAccessToken={process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_ACCESS_TOKEN}
         mapStyle="mapbox://styles/mapbox/streets-v9"
       >
         {result?.hvv?.geojson && (
