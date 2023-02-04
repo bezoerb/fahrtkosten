@@ -13,7 +13,7 @@ const getPrice = (ticketInfos: TicketInfo[]) => {
 const calculateTickets = (
   adults: number,
   children: number,
-  oneWay: boolean,
+  twoWay: boolean,
   ticketInfos: TicketInfo[]
 ): TicketInfo[] => {
   const now = new Date();
@@ -29,10 +29,10 @@ const calculateTickets = (
   const specialTicket = ticketInfos.find((info) => info.tariffKindID === 49);
 
   const ticketsAdult = (
-    oneWay ? [hvvAdultSingle] : hvvAdultDay ? [hvvAdultDay] : [hvvAdultSingle, hvvAdultSingle]
+    !twoWay ? [hvvAdultSingle] : hvvAdultDay ? [hvvAdultDay] : [hvvAdultSingle, hvvAdultSingle]
   ).filter((v) => v);
   const ticketsChild = (
-    oneWay ? [hvvChildSingle] : hvvChildDay ? [hvvChildDay] : [hvvChildSingle, hvvChildSingle]
+    !twoWay ? [hvvChildSingle] : hvvChildDay ? [hvvChildDay] : [hvvChildSingle, hvvChildSingle]
   ).filter((v) => v);
 
   if (!ticketsAdult.length || !ticketsChild.length) {
@@ -49,7 +49,7 @@ const calculateTickets = (
   let dayTickets = [];
 
   if (adults > 0) {
-    dayTickets = [hvvDay, ...calculateTickets(adults - 1, Math.max(0, children - 3), oneWay, ticketInfos)];
+    dayTickets = [hvvDay, ...calculateTickets(adults - 1, Math.max(0, children - 3), twoWay, ticketInfos)];
     dayPrice = getPrice(dayTickets);
   }
 
@@ -61,7 +61,7 @@ const calculateTickets = (
     const placesLeft = Math.max(0, 5 - adults);
     const childrenLeft = Math.max(0, children - placesLeft);
 
-    groupTickets = [hvvGroup, ...calculateTickets(adultsLeft, childrenLeft, oneWay, ticketInfos)];
+    groupTickets = [hvvGroup, ...calculateTickets(adultsLeft, childrenLeft, twoWay, ticketInfos)];
     groupPrice = getPrice(groupTickets);
   }
 
@@ -142,7 +142,7 @@ export const useHvv = (start: Location | undefined, end: Location | undefined) =
 
   useEffect(() => {
     const ticketInfos = swr.data?.schedules?.[0]?.tariffInfos?.[0]?.ticketInfos ?? [];
-    const hvvTickets = calculateTickets(input.adults, input.children, input.oneWay, ticketInfos);
+    const hvvTickets = calculateTickets(input.adults, input.children, input.twoWay, ticketInfos);
     const hvvPrice = getPrice(hvvTickets);
 
     setResult({
@@ -151,7 +151,7 @@ export const useHvv = (start: Location | undefined, end: Location | undefined) =
       tickets: hvvTickets,
       geojson: getGeojson(swr.data?.schedules?.[0]),
     });
-  }, [input.adults, input.children, input.oneWay, swr.data]);
+  }, [input.adults, input.children, input.twoWay, swr.data]);
 
   return {
     ...swr,

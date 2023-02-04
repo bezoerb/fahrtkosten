@@ -92,10 +92,10 @@ export const Map = (props) => {
         [result.dest.longitude, result.dest.latitude]
       );
 
-      const trainAvailable = Boolean(result?.hvv?.geojson);
+      const trainAvailable = Boolean(result?.hvv?.duration);
       const fastestAvailable =
-        Boolean(result?.carFastest?.geojson) && result?.carFastest?.distance !== result?.carShortest?.distance;
-      const shortestAvailable = Boolean(result?.carShortest?.geojson);
+        Boolean(result?.carFastest?.duration) && result?.carFastest?.distance !== result?.carShortest?.distance;
+      const shortestAvailable = Boolean(result?.carShortest?.duration);
 
       if (trainAvailable) {
         extendBounds(bounds, result?.hvv?.geojson);

@@ -43,8 +43,8 @@ export const Form = (props) => {
       </Input>
       <Input label="Ziel" value={input.dest} name="dest" onChange={onChange} className="mb-3" />
       <label className="block">
-        <input type="checkbox" name="oneWay" onChange={onChange} defaultChecked={input.oneWay} />
-        &nbsp;Einfache Fahrt?
+        <input type="checkbox" name="twoWay" onChange={onChange} defaultChecked={input.twoWay} />
+        &nbsp;Hin- und Rückfahrt?
       </label>
     </form>
   );

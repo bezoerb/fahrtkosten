@@ -30,7 +30,7 @@ interface InputData {
   start: string;
   dest: string;
   fuelType: FuelType;
-  oneWay: boolean;
+  twoWay: boolean;
   fuelConsumption: number;
   adults: number;
   children: number;
@@ -61,7 +61,7 @@ const initialState: AppProps = {
     start: '',
     dest: '',
     fuelType: FuelType.E5,
-    oneWay: false,
+    twoWay: true,
     fuelConsumption: 11,
     adults: 1,
     children: 0,

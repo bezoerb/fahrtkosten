@@ -41,8 +41,8 @@ export const useDirections = (start: Location | undefined, end: Location | undef
     getJSON
   );
 
-  const calculatePrice = (distance: number, fuelPrice: number, fuelConsumption: number, oneWay: boolean) => {
-    return (distance / 100000) * fuelPrice * fuelConsumption * (oneWay ? 1 : 2);
+  const calculatePrice = (distance: number, fuelPrice: number, fuelConsumption: number, twoWay: boolean) => {
+    return (distance / 100000) * fuelPrice * fuelConsumption * (twoWay ? 2 : 1);
   };
 
   useEffect(() => {
@@ -53,7 +53,7 @@ export const useDirections = (start: Location | undefined, end: Location | undef
       setFastest({
         distance: fastestRoute.distance / 1000,
         duration: fastestRoute.duration / 60,
-        price: calculatePrice(fastestRoute.distance, price, input.fuelConsumption, input.oneWay),
+        price: calculatePrice(fastestRoute.distance, price, input.fuelConsumption, input.twoWay),
         geojson: getGeojson(fastestRoute),
       });
     }
@@ -61,11 +61,11 @@ export const useDirections = (start: Location | undefined, end: Location | undef
       setShortest({
         distance: shortestRoute.distance / 1000,
         duration: shortestRoute.duration / 60,
-        price: calculatePrice(shortestRoute.distance, price, input.fuelConsumption, input.oneWay),
+        price: calculatePrice(shortestRoute.distance, price, input.fuelConsumption, input.twoWay),
         geojson: getGeojson(shortestRoute),
       });
     }
-  }, [input.fuelConsumption, input.oneWay, price, swr.data]);
+  }, [input.fuelConsumption, input.twoWay, price, swr.data]);
 
   return {
     ...swr,
