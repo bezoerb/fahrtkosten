@@ -22,8 +22,8 @@ const Home: NextPage = () => {
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
         <link rel="manifest" href="/site.webmanifest" />
         <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5" />
-        <meta name="msapplication-TileColor" content="#eb8200" />
-        <meta name="theme-color" content="#000000"></meta>
+        <meta name="msapplication-TileColor" content="#da532c" />
+        <meta name="theme-color" content="#000000" />
       </Head>
 
       <main className={styles.main}>
@@ -46,7 +46,7 @@ const Home: NextPage = () => {
           </button>
         </div>
         <div className="md:grid md:grid-cols-2 w-full h-full max-w-6xl mx-auto gap-8 ">
-          <div className='mb-8'>
+          <div className="mb-8">
             <Form className="mb-8" />
             <Result className="mt-6" />
           </div>
