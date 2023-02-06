@@ -1,39 +1,28 @@
-import { ChangeEventHandler } from 'react';
+import { InputHTMLAttributes } from 'react';
 import classNames from 'classnames';
 
-type InputProps = React.PropsWithChildren<{
-  label: string;
-  value: string | number;
-  className?: string;
-  inputClassName?: string;
-  disabled?: boolean;
-  type?: string;
-  name: string;
-  min?: number;
-  max?: number;
-  id?: string;
-  onChange: ChangeEventHandler<HTMLInputElement>;
-}>;
+type InputProps = React.PropsWithChildren<
+  {
+    label?: string;
+    inputClassName?: InputHTMLAttributes<HTMLInputElement>['className'];
+  } & InputHTMLAttributes<HTMLInputElement>
+>;
+
+const uuid = () => `${Math.random()}`.substring(2);
 
 export const Input = (props: InputProps) => {
+  const { label, inputClassName, className, children, ...inputProps } = props;
+  const id = props.id || props.name || `input-${uuid()}`;
   return (
-    <div className={classNames(props.className, 'formelement')}>
-      <label htmlFor={props.id || props.name} className="block font-bold">
-        {props.label}
-      </label>
+    <div className={classNames(className, 'formelement')}>
+      {label && (
+        <label htmlFor={id} className="block font-bold">
+          {label}
+        </label>
+      )}
       <div className="relative">
-        <input
-          disabled={props.disabled}
-          min={props.min}
-          max={props.max}
-          className={`w-full border px-3 py-2 rounded ${props.inputClassName || ''}`}
-          id={props.id || props.name}
-          type={props?.type ?? 'text'}
-          name={props.name}
-          value={props.value}
-          onChange={props.onChange}
-        />
-        {props.children}
+        <input {...inputProps} className={`w-full border px-3 py-2 rounded ${props.inputClassName || ''}`} id={id} />
+        {children}
       </div>
     </div>
   );

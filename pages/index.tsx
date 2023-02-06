@@ -1,15 +1,22 @@
-import { useEffect, useState } from 'react';
+import classNames from 'classnames';
 import type { NextPage } from 'next';
 import Head from 'next/head';
-import styles from '../styles/Home.module.css';
+import { useEffect, useRef, useState } from 'react';
 import { Form } from '../components/form';
-import { Settings } from '../components/settings';
-import { Result } from '../components/result';
 import { Map } from '../components/map';
-import classNames from 'classnames';
+import { Result } from '../components/result';
+import { Settings } from '../components/settings';
+import styles from '../styles/Home.module.css';
 
 const Home: NextPage = () => {
+  const refMain = useRef<HTMLDivElement>(null);
+  const refAside = useRef<HTMLFormElement>(null);
   const [settingOpen, setSettingsOpen] = useState(false);
+
+  useEffect(() => {
+    refMain.current.inert = settingOpen;
+    refAside.current.inert = !settingOpen;
+  }, [settingOpen]);
 
   return (
     <div className={styles.container}>
@@ -25,27 +32,33 @@ const Home: NextPage = () => {
         <meta name="msapplication-TileColor" content="#da532c" />
         <meta name="theme-color" content="#000000" />
       </Head>
-
+      <div
+        className={classNames('absolute w-full h-full left-0 top-0 bg-black z-40 transition-opacity', {
+          'opacity-30 cursor-pointer': settingOpen,
+          'pointer-events-none opacity-0': !settingOpen,
+        })}
+        onClick={() => setSettingsOpen(false)}
+      />
       <main className={styles.main}>
         <h1 className="text-3xl font-bold  text-left mb-12 w-full max-w-6xl mx-auto">Fahrtkosten</h1>
-        <div
+        <aside
           className={classNames(
-            'z-10 absolute left-0 top-0 h-full p-8 transition-transform bg-white border shadow-md',
+            'z-50 absolute left-0 top-0 h-full p-8 transition-transform ease-out duration-300 bg-white border shadow-md',
             {
               '-translate-x-full': !settingOpen,
               'translate-x-0': settingOpen,
             }
           )}
         >
-          <Settings className="grid  gap-8" />
+          <Settings className="grid  gap-8" ref={refAside} />
           <button
             onClick={() => setSettingsOpen((value) => !value)}
-            className="absolute right-0 top-4 translate-x-full px-4 py-3 border border-l-0 -ml-px bg-white"
+            className="absolute right-0 top-4 translate-x-full px-4 py-3 border border-l-0 -ml-px bg-white "
           >
             Settings
           </button>
-        </div>
-        <div className="md:grid md:grid-cols-2 w-full h-full max-w-6xl mx-auto gap-8 ">
+        </aside>
+        <div ref={refMain} className="md:grid md:grid-cols-2 w-full h-full max-w-6xl mx-auto gap-8">
           <div className="mb-8">
             <Form className="mb-8" />
             <Result className="mt-6" />
