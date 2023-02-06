@@ -116,6 +116,12 @@ export const Map = (props) => {
       setHasTrain(trainAvailable);
       setHasFastest(fastestAvailable);
       setHasShortest(shortestAvailable);
+    } else if (result?.start?.latitude) {
+      mapRef?.current?.getMap()?.setCenter([result.start.longitude, result.start.latitude]);
+      mapRef?.current?.getMap()?.setZoom(13);
+    } else if (result?.dest?.latitude) {
+      mapRef?.current?.getMap()?.setCenter([result.dest.longitude, result.dest.latitude]);
+      mapRef?.current?.getMap()?.setZoom(13);
     }
   }, [result]);
 
