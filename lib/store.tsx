@@ -5,6 +5,7 @@ import { createContext, useContext } from 'react';
 import { createStore, useStore } from 'zustand';
 import { shallow } from 'zustand/shallow';
 import { devtools } from 'zustand/middleware';
+import { Journeys as HafasJourneys } from 'hafas-client';
 
 // Provider wrapper
 import { useRef } from 'react';
@@ -12,7 +13,7 @@ import {} from 'react';
 
 import { take } from './helper';
 import { merge } from 'merge-anything';
-import { FuelType, Location } from './types';
+import { FuelType, HafasResult, Location } from './types';
 
 interface CarData {
   duration: number;
@@ -26,7 +27,7 @@ interface HvvData {
   childPrice: number;
 }
 
-interface InputData {
+export interface InputData {
   start: string;
   dest: string;
   fuelType: FuelType;
@@ -38,9 +39,10 @@ interface InputData {
 
 const keep = ['start', 'fuelType', 'fuelConsumption', 'adults', 'children'];
 
-interface ResultData {
+export interface ResultData {
   carFastest?: CarData;
   carShortest?: CarData;
+  db?: HafasResult;
   hvv?: HvvData;
   start?: Location;
   end?: Location;

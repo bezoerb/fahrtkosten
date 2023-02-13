@@ -1,3 +1,5 @@
+import { FeatureCollection } from "geojson";
+
 export type Location = {
   latitude: number;
   longitude: number;
@@ -81,6 +83,7 @@ export type DirectionsResponse = {
   uuid: string;
 };
 
+
 export type GeoJson = {
   type: 'FeatureCollection';
   features: [
@@ -90,7 +93,7 @@ export type GeoJson = {
       geometry: Route['geometry'];
     }
   ];
-};
+} | FeatureCollection;
 
 export type CarResult = {
   duration: number;
@@ -221,3 +224,10 @@ export type HvvResult = {
   tickets: TicketInfo[];
   geojson: GeoJson;
 };
+
+export type HafasResult = {
+  price: number;
+  duration: number;
+  geojson?: FeatureCollection;
+  changes: number;
+}

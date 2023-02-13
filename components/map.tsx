@@ -94,13 +94,13 @@ export const Map = (props) => {
         [result.dest.longitude, result.dest.latitude]
       );
 
-      const trainAvailable = Boolean(result?.hvv?.duration);
+      const trainAvailable = Boolean(result?.hvv?.duration) || Boolean(result?.db?.geojson);
       const fastestAvailable =
         Boolean(result?.carFastest?.duration) && result?.carFastest?.distance !== result?.carShortest?.distance;
       const shortestAvailable = Boolean(result?.carShortest?.duration);
 
       if (trainAvailable) {
-        extendBounds(bounds, result?.hvv?.geojson);
+        extendBounds(bounds, result?.hvv?.duration ? result?.hvv?.geojson : result?.db?.geojson);
       }
 
       if (shortestAvailable) {
@@ -125,6 +125,9 @@ export const Map = (props) => {
     }
   }, [result]);
 
+  console.log(result?.carShortest?.geojson);
+  console.log(result?.db?.geojson);
+
   return (
     <div className={props.className}>
       <MapboxMap
@@ -143,8 +146,13 @@ export const Map = (props) => {
         }}
         mapStyle="mapbox://styles/mapbox/streets-v9"
       >
-        {result?.hvv?.geojson && (
+        {result?.hvv?.duration && result?.hvv?.geojson && (
           <Source id="geojson-train" key="geojson-train" type="geojson" data={result?.hvv?.geojson}>
+            <Layer {...layerStyleTrain} />
+          </Source>
+        )}
+        {!result?.hvv?.duration && result?.db?.geojson && (
+          <Source id="geojson-train" key="geojson-train" type="geojson" data={result?.db?.geojson}>
             <Layer {...layerStyleTrain} />
           </Source>
         )}
@@ -167,7 +175,7 @@ export const Map = (props) => {
         )}
       </MapboxMap>
       <div className="bg-white relative z-10 pt-3">
-        {hasTrain && <Legend color={colorTrain} dashed label="HVV" />}
+        {hasTrain && <Legend color={colorTrain} dashed label={result?.hvv?.duration ? 'HVV' : 'Deutsche Bahn'} />}
         {hasFastest && hasShortest && (
           <>
             <Legend color={colorCarShortest} label="Auto (kürzeste Route)" />

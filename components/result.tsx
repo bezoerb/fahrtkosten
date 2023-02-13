@@ -33,7 +33,8 @@ const ResultComponent = (props) => {
   const cheapest = Math.min(
     result?.hvv?.duration ? result?.hvv?.price : Infinity,
     result?.carShortest?.price ?? Infinity,
-    result?.carFastest?.price ?? Infinity
+    result?.carFastest?.price ?? Infinity,
+    result?.db?.price ?? Infinity
   );
 
   return (
@@ -46,17 +47,29 @@ const ResultComponent = (props) => {
             <b>nach:</b> {result.dest.name}
           </div>
 
+          {Boolean(result?.db?.duration) && (
+            <span className={result?.db?.price === cheapest ? 'text-green-700' : ''}>
+              <h3 className="font-bold text-lg mb-0.5">Deutsche Bahn</h3>
+              <div className="mb-6">
+                <span className="font-semibold">Günstigster Preis:</span>{' '}
+                {result?.db?.price ? formatPrice(result.db.price) : '-'}
+                <br />
+                <span className="font-semibold">Dauer (eine fahrt): </span> {formatTime(result?.db?.duration)}
+                <br />
+                <span className="font-semibold">Umstiege: </span> {result.db.changes}
+              </div>
+            </span>
+          )}
+
           {Boolean(result?.hvv?.duration) && (
             <span className={result?.hvv?.price === cheapest ? 'text-green-700' : ''}>
-              <h3 className="font-bold text-lg mb-0.5">
-                HVV
-              </h3>
+              <h3 className="font-bold text-lg mb-0.5">HVV</h3>
               <div className="mb-6">
-                <span className='font-semibold'>Preis:</span> {result?.hvv?.price ? formatPrice(result.hvv.price) : '-'}
+                <span className="font-semibold">Preis:</span> {result?.hvv?.price ? formatPrice(result.hvv.price) : '-'}
                 <br />
-                <span className='font-semibold'>Dauer (eine fahrt): </span> {formatTime(result?.hvv?.duration)}
+                <span className="font-semibold">Dauer (eine fahrt): </span> {formatTime(result?.hvv?.duration)}
                 <br />
-                <span className='font-semibold'>Tickets:</span>
+                <span className="font-semibold">Tickets:</span>
                 {result?.hvv?.tickets?.map((ticket, index) => (
                   <div key={index} className="flex items-stretch">
                     {' '}
@@ -92,25 +105,23 @@ const ResultComponent = (props) => {
                     <i className="font-normal text-sm">({result.fuelPrice} €/l)</i>
                   </small>
                 </h3>
-                <h4 className="font-semibold mt-2 mb-0.5">
-                  Kürzeste Route
-                </h4>
-                <span className='font-semibold'>Preis:</span> {formatPrice(result?.carShortest?.price)}
+                <h4 className="font-semibold mt-2 mb-0.5">Kürzeste Route</h4>
+                <span className="font-semibold">Preis:</span> {formatPrice(result?.carShortest?.price)}
                 <br />
-                <span className='font-semibold'>Dauer (eine fahrt): </span> {formatTime(result?.carShortest?.duration)}
+                <span className="font-semibold">Dauer (eine fahrt): </span> {formatTime(result?.carShortest?.duration)}
                 <br />
-                <span className='font-semibold'>Entfernung (eine fahrt):</span> {formatDistance(result?.carShortest?.distance)} <br />
+                <span className="font-semibold">Entfernung (eine fahrt):</span>{' '}
+                {formatDistance(result?.carShortest?.distance)} <br />
               </span>
               <span className={result?.carFastest?.price === cheapest ? 'text-green-700' : ''}>
                 <br />
-                <h4 className="font-semibold mt-2 mb-0.5">
-                  Schnellste Route
-                </h4>
-                <span className='font-semibold'>Preis:</span> {formatPrice(result?.carFastest?.price)}
+                <h4 className="font-semibold mt-2 mb-0.5">Schnellste Route</h4>
+                <span className="font-semibold">Preis:</span> {formatPrice(result?.carFastest?.price)}
                 <br />
-                <span className='font-semibold'>Dauer (eine fahrt): </span> {formatTime(result?.carFastest?.duration)}
+                <span className="font-semibold">Dauer (eine fahrt): </span> {formatTime(result?.carFastest?.duration)}
                 <br />
-                <span className='font-semibold'>Entfernung (eine fahrt):</span> {formatDistance(result?.carFastest?.distance)} <br />
+                <span className="font-semibold">Entfernung (eine fahrt):</span>{' '}
+                {formatDistance(result?.carFastest?.distance)} <br />
               </span>
             </>
           )}
@@ -122,11 +133,12 @@ const ResultComponent = (props) => {
                   <i className="font-normal text-sm">({result.fuelPrice} €/l)</i>
                 </small>
               </h3>
-              <span className='font-semibold'>Preis:</span> {formatPrice(result?.carShortest?.price)}
+              <span className="font-semibold">Preis:</span> {formatPrice(result?.carShortest?.price)}
               <br />
-              <span className='font-semibold'>Dauer (eine fahrt): </span> {formatTime(result?.carShortest?.duration)}
+              <span className="font-semibold">Dauer (eine fahrt): </span> {formatTime(result?.carShortest?.duration)}
               <br />
-              <span className='font-semibold'>Entfernung (eine fahrt):</span> {formatDistance(result?.carShortest?.distance)} <br />
+              <span className="font-semibold">Entfernung (eine fahrt):</span>{' '}
+              {formatDistance(result?.carShortest?.distance)} <br />
             </span>
           )}
         </>

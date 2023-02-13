@@ -10,7 +10,12 @@
   },
   "dependencies": {
     "classnames": "^2.3.2",
+    "db-hafas": "^6.0.0",
+    "db-hafas-stations": "^1.0.0",
+    "db-prices": "^3.0.3",
+    "db-stations-autocomplete": "^4.1.0",
     "detect-passive-events": "^2.0.3",
+    "hafas-client": "^6.0.2",
     "http-proxy": "^1.18.1",
     "immer": "^9.0.19",
     "mapbox-gl": "^2.12.0",
@@ -28,7 +33,9 @@
     "zustand": "^4.3.2"
   },
   "devDependencies": {
+    "@types/db-stations-autocomplete": "^3.0.0",
     "@types/geojson": "^7946.0.10",
+    "@types/hafas-client": "^6.0.0",
     "@types/http-proxy": "^1.17.9",
     "@types/node": "^18.11.18",
     "@types/react": "^18.0.27",

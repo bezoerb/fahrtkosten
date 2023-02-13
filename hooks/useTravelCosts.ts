@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import useSWR from 'swr/immutable';
 import { useImmer } from 'use-immer';
 import { getJSON } from '../lib/helper';
+import { Journeys as HafasJourneys } from 'hafas-client';
 
 import { useAppContext } from '../lib/store';
-import { CarResult, HvvResult, Position } from '../lib/types';
+import { CarResult, HafasResult, HvvResult, Position } from '../lib/types';
 import { useDirections } from './useDirections';
 import { useGeocode } from './useGeocode';
+import { useHafas } from './useHafas';
 import { useHvv } from './useHvv';
 import { useTankerkoenig } from './useTankerkoenig';
 
@@ -22,11 +24,11 @@ type Result = {
   carShortest: CarResult;
   carFastest: CarResult;
   hvv: HvvResult;
+  db: HafasResult;
   fuelPrice: number;
   start: Position;
   dest: Position;
   ready: boolean;
-
 };
 
 export const useTravelCosts = () => {
@@ -42,6 +44,12 @@ export const useTravelCosts = () => {
 
   const { fastest, shortest } = useDirections(locationStart, locationDest);
   const { result: hvvResult } = useHvv(locationStart, locationDest);
+
+  const { result: hafasResult } = useHafas(locationStart, locationDest);
+
+  useEffect(() => {
+    console.log(hafasResult);
+  }, [hafasResult]);
 
   useEffect(() => {
     setResult((draft) => {
@@ -68,13 +76,18 @@ export const useTravelCosts = () => {
         draft.carFastest = fastest;
       }
 
+      if (JSON.stringify(draft.db) !== JSON.stringify(hafasResult)) {
+        // @ts-ignore
+        draft.db = hafasResult;
+      }
+
       const ready = fastest && fastest?.duration !== Infinity;
 
       if (draft.ready !== ready) {
         draft.ready = ready;
       }
     });
-  }, [locationStart, locationDest, fastest, shortest, setResult, hvvResult, fuelPrice]);
+  }, [locationStart, locationDest, fastest, shortest, setResult, hvvResult, fuelPrice, hafasResult]);
 
   return result;
 };
