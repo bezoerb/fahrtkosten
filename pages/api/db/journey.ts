@@ -162,7 +162,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       const result2 = await client2.journeys(from, to, { results: 1, polylines: true, age });
 
       res.status(200).json(result2);
-    } catch {}
+    } catch {
+      res.status(404);
+    }
+  } else {
+    res.status(200).json({});
   }
-  res.status(200).json({});
 }
