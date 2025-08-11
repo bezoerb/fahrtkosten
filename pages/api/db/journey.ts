@@ -74,6 +74,9 @@ const fetchJourneys = async (from, to, opt: Opt = {}) => {
     opt
   );
 
+  const when = new Date(opt.departure || Date.now());
+  if (Number.isNaN(+when)) throw new TypeError('opt.departure is invalid');
+
   const filters = [profile.formatProductsFilter({ profile }, opt.products || {})];
 
   const query = {
@@ -95,10 +98,10 @@ const fetchJourneys = async (from, to, opt: Opt = {}) => {
     },
   };
 
-  // // @ts-ignore
-  // query.outDate = profile.formatDate(profile, opt.departure);
-  // // @ts-ignore
-  // query.outTime = profile.formatTime(profile, opt.departure);
+  // @ts-ignore
+  query.outDate = profile.formatDate(profile, opt.departure);
+  // @ts-ignore
+  query.outTime = profile.formatTime(profile, opt.departure);
 
   const { res, common } = await profile.request({ profile, opt }, 'fahrtkosten.zoerb.dev', {
     cfg: { polyEnc: 'GPA' },
@@ -124,18 +127,14 @@ const journeys = async (from, to, params, day = Date.now()) => {
       age: params.age === 'Y' ? 'Y' : 'E',
     });
 
-    console.log(journeys);
-
     return journeys.filter((journey) => {
       const plannedDeparture = new Date(journey.legs[0].plannedDeparture);
       const plannedArrival = new Date(journey.legs[journey.legs.length - 1].plannedArrival);
       const duration = +plannedArrival - +plannedDeparture;
       const changes = journey.legs.length - 1;
-      console.log({ price: journey.price, duration, changes });
       return (
         (!params.duration || duration <= params.duration * 60 * 60 * 1000) &&
-        (params.maxChanges === undefined || params.maxChanges === null || params.maxChanges >= changes) &&
-        Boolean(journey.price)
+        (params.maxChanges === undefined || params.maxChanges === null || params.maxChanges >= changes)
       );
     });
   } catch (error) {
@@ -159,9 +158,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
   if (from && from) {
     try {
+      const today = new Date(Date.now());
+      const tomorrow = new Date(Date.now() + 60 * 60 * 24 * 1000);
+      // tomorrow.getHours()
+
+      tomorrow.setHours(1);
+      tomorrow.setMinutes(0);
+      const result1 = await journeys(from, to, {}, +tomorrow);
+
       const result2 = await client2.journeys(from, to, { results: 1, polylines: true, age });
 
-      res.status(200).json(result2);
+      res.status(200).json(result1);
     } catch {
       res.status(404);
     }
