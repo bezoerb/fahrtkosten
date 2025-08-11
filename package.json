@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "classnames": "^2.3.2",
@@ -33,6 +36,8 @@
     "zustand": "^4.3.2"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.4",
+    "@testing-library/react": "^13.4.0",
     "@types/db-stations-autocomplete": "^3.0.0",
     "@types/geojson": "^7946.0.10",
     "@types/hafas-client": "^6.0.0",
@@ -40,12 +45,15 @@
     "@types/node": "^18.11.18",
     "@types/react": "^18.0.27",
     "@types/react-dom": "^18.0.10",
+    "@vitest/ui": "^1.6.1",
     "autoprefixer": "^10.4.13",
     "eslint": "^8.33.0",
     "eslint-config-next": "^13.1.6",
+    "jsdom": "^23.2.0",
     "postcss": "^8.4.21",
     "tailwindcss": "^3.2.4",
     "typescript": "^4.9.4",
-    "vercel": "^28.14.0"
+    "vercel": "^28.14.0",
+    "vitest": "^1.6.1"
   }
 }

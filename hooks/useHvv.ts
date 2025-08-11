@@ -1,32 +1,35 @@
 import { useEffect, useState } from 'react';
 import useSWR from 'swr/immutable';
+import {
+  HVV_TARIFF_DAY,
+  HVV_TARIFF_DAY_CHILD,
+  HVV_TARIFF_GERMANY_TICKET,
+  HVV_TARIFF_GROUP,
+  HVV_TARIFF_SINGLE,
+  HVV_TARIFF_SINGLE_CHILD,
+} from '../constants/hvv';
 import { getJSON } from '../lib/helper';
 import { useAppContext } from '../lib/store';
 
 import type { GeoJson, HvvResponse, HvvResult, HvvSchedule, Location, TicketInfo } from '../lib/types';
 
-const getPrice = (ticketInfos: TicketInfo[]) => {
+export const getPrice = (ticketInfos: TicketInfo[]) => {
   const price = ticketInfos.reduce((res, info) => res + info?.basePrice ?? 0, 0);
   return Math.round(price * 100) / 100;
 };
 
-const calculateTickets = (
+export const calculateTickets = (
   adults: number,
   children: number,
   twoWay: boolean,
   ticketInfos: TicketInfo[]
 ): TicketInfo[] => {
-  const now = new Date();
-  const hour = now.getHours();
-
-  // const is9 = (hour >= 1 && hour < 6) || (hour >= 9 && hour < 18);
-  const hvvAdultSingle = ticketInfos.find((info) => info.tariffKindID === 1);
-  const hvvAdultDay = ticketInfos.find((info) => info.tariffKindID === 21);
-  const hvvChildSingle = ticketInfos.find((info) => info.tariffKindID === 2);
-  const hvvChildDay = ticketInfos.find((info) => info.tariffKindID === 12);
-  const hvvGroup = ticketInfos.find((info) => info.tariffKindID === 23);
-  const hvvDay = ticketInfos.find((info) => info.tariffKindID === 11);
-  const specialTicket = ticketInfos.find((info) => info.tariffKindID === 49);
+  const hvvAdultSingle = ticketInfos.find((info) => info.tariffKindID === HVV_TARIFF_SINGLE);
+  const hvvAdultDay = ticketInfos.find((info) => info.tariffKindID === HVV_TARIFF_DAY);
+  const hvvChildSingle = ticketInfos.find((info) => info.tariffKindID === HVV_TARIFF_SINGLE_CHILD);
+  const hvvChildDay = ticketInfos.find((info) => info.tariffKindID === HVV_TARIFF_DAY_CHILD);
+  const hvvGroup = ticketInfos.find((info) => info.tariffKindID === HVV_TARIFF_GROUP);
+  const specialTicket = ticketInfos.find((info) => info.tariffKindID === HVV_TARIFF_GERMANY_TICKET);
 
   const ticketsAdult = (
     !twoWay ? [hvvAdultSingle] : hvvAdultDay ? [hvvAdultDay] : [hvvAdultSingle, hvvAdultSingle]
@@ -35,34 +38,53 @@ const calculateTickets = (
     !twoWay ? [hvvChildSingle] : hvvChildDay ? [hvvChildDay] : [hvvChildSingle, hvvChildSingle]
   ).filter((v) => v);
 
-  if (!ticketsAdult.length || !ticketsChild.length) {
+  // Validierung: Erwachsenen-Tickets erforderlich, wenn Erwachsene vorhanden sind
+  // Kinder-Tickets erforderlich, wenn Kinder vorhanden sind
+  if ((adults > 0 && !ticketsAdult.length) || (children > 0 && !ticketsChild.length)) {
     return [];
   }
 
   const specialTickets = Array.from(Array(Math.max(0, adults + children)))
     .map(() => specialTicket)
-    .map((v) => v);
+    .filter((v) => v);
 
   const specialPrice = getPrice(specialTickets);
-  const naivePrice = getPrice(ticketsAdult) * adults + getPrice(ticketsChild) * children;
+  const naivePrice =
+    (adults > 0 ? getPrice(ticketsAdult) * adults : 0) + (children > 0 ? getPrice(ticketsChild) * children : 0);
   let dayPrice = Infinity;
   let dayTickets = [];
 
-  if (adults > 0) {
-    dayTickets = [hvvDay, ...calculateTickets(adults - 1, Math.max(0, children - 3), twoWay, ticketInfos)];
+  // hvvAdultDay deckt 1 Erwachsenen + bis zu 3 Kinder ab
+  if (adults > 0 && hvvAdultDay) {
+    const coveredChildren = Math.min(children, 3);
+    const remainingChildren = Math.max(0, children - coveredChildren);
+    const remainingAdults = adults - 1;
+
+    const additionalTickets = calculateTickets(remainingAdults, remainingChildren, twoWay, ticketInfos);
+    dayTickets = [hvvAdultDay, ...additionalTickets];
     dayPrice = getPrice(dayTickets);
   }
-
   let groupPrice = Infinity;
   let groupTickets = [];
 
+  // hvvGroup deckt bis zu 5 Personen (Erwachsene oder Kinder) ab
   if (adults + children > 1 && hvvGroup) {
-    const adultsLeft = Math.max(0, adults - 5);
-    const placesLeft = Math.max(0, 5 - adults);
-    const childrenLeft = Math.max(0, children - placesLeft);
+    if (adults + children <= 5) {
+      groupTickets = [hvvGroup];
+      groupPrice = getPrice(groupTickets);
+    } else {
+      // Mehr als 5 Personen: Gruppenticket für 5 Personen + zusätzliche Tickets für die verbleibenden
+      const totalPeople = adults + children;
+      const remainingPeople = totalPeople - 5;
 
-    groupTickets = [hvvGroup, ...calculateTickets(adultsLeft, childrenLeft, twoWay, ticketInfos)];
-    groupPrice = getPrice(groupTickets);
+      // Verteile die verbleibenden Personen: priorisiere Erwachsene, dann Kinder
+      const remainingAdults = Math.max(0, adults - Math.min(adults, 5));
+      const remainingChildren = Math.max(0, remainingPeople - remainingAdults);
+
+      const additionalTickets = calculateTickets(remainingAdults, remainingChildren, twoWay, ticketInfos);
+      groupTickets = [hvvGroup, ...additionalTickets];
+      groupPrice = getPrice(groupTickets);
+    }
   }
 
   const prices = [
@@ -87,16 +109,18 @@ const calculateTickets = (
     },
   ];
 
-  return prices.reduce(
-    (res, data) => {
-      if (res.price > data.price) {
-        return data;
-      }
+  return prices
+    .filter((price) => !!price?.tickets?.length)
+    .reduce(
+      (res, data) => {
+        if (res.price > data.price) {
+          return data;
+        }
 
-      return res;
-    },
-    { price: Infinity, tickets: [] }
-  ).tickets;
+        return res;
+      },
+      { price: Infinity, tickets: [] }
+    ).tickets;
 };
 
 const getGeojson = (schedule: HvvSchedule): GeoJson => {

@@ -125,8 +125,8 @@ export const Map = (props) => {
     }
   }, [result]);
 
-  console.log(result?.carShortest?.geojson);
-  console.log(result?.db?.geojson);
+  // console.log(result?.carShortest?.geojson);
+  // console.log(result?.db?.geojson);
 
   return (
     <div className={props.className}>
