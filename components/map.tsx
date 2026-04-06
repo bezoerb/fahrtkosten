@@ -86,7 +86,7 @@ process.env.REACT_APP_MAPBOX_ACCESS_TOKEN =
 
 export const Map = (props) => {
   const result = useTravelCosts();
-  const mapRef = useRef<MapRef>();
+  const mapRef = useRef<MapRef>(undefined);
   const [hasTrain, setHasTrain] = useState(false);
   const [hasFastest, setHasFastest] = useState(false);
   const [hasShortest, setHasShortest] = useState(false);
@@ -143,7 +143,7 @@ export const Map = (props) => {
   // console.log(result?.db?.geojson);
 
   return (
-    <div>
+    <div className="flex flex-col">
       <div className={props.className}>
         <MapboxMap
           reuseMaps={true}

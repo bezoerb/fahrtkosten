@@ -14,7 +14,7 @@ import { useAppContext } from '../lib/store';
 import type { GeoJson, HvvResponse, HvvResult, HvvSchedule, Location, TicketInfo } from '../lib/types';
 
 export const getPrice = (ticketInfos: TicketInfo[]) => {
-  const price = ticketInfos.reduce((res, info) => res + info?.basePrice ?? 0, 0);
+  const price = ticketInfos.reduce((res, info) => res + (info?.basePrice ?? 0), 0);
   return Math.round(price * 100) / 100;
 };
 
@@ -152,14 +152,14 @@ export const useHvv = (start: Location | undefined, end: Location | undefined) =
     () =>
       start?.latitude && end?.latitude
         ? [
-            '/api/hvv',
-            {
-              'lng-start': start?.longitude,
-              'lat-start': start?.latitude,
-              'lng-dest': end?.longitude,
-              'lat-dest': end?.latitude,
-            },
-          ]
+          '/api/hvv',
+          {
+            'lng-start': start?.longitude,
+            'lat-start': start?.latitude,
+            'lng-dest': end?.longitude,
+            'lat-dest': end?.latitude,
+          },
+        ]
         : null,
     getJSON
   );

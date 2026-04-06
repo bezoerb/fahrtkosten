@@ -3,7 +3,6 @@ import {
   Location as HafasLocation,
   Station as HafasStation,
   Stop as HafasStop,
-  Journeys as HafasJourneys,
   Journey as HafasJourney,
 } from 'hafas-client';
 import { useEffect, useState } from 'react';
@@ -12,9 +11,31 @@ import { getJSON } from '../lib/helper';
 import { useAppContext } from '../lib/store';
 import type { HafasResult, Location } from '../lib/types';
 
-const getGeoJson = (journey: HafasJourney): FeatureCollection => {
-  const features = journey.legs.flatMap((leg) => leg?.polyline?.features ?? []);
-  const coordinates = features.map((feature) => feature.geometry.coordinates);
+const getCoords = (stop: HafasLocation | HafasStation | HafasStop | undefined): [number, number] | null => {
+  if (!stop) return null;
+  if (stop.type === 'location' && stop.longitude && stop.latitude) {
+    return [stop.longitude, stop.latitude];
+  }
+  const loc = (stop as HafasStation | HafasStop).location;
+  if (loc?.longitude && loc?.latitude) {
+    return [loc.longitude, loc.latitude];
+  }
+  return null;
+};
+
+const getGeoJson = (journey: HafasJourney): FeatureCollection | undefined => {
+  // Try polyline data first
+  const polylineFeatures = journey.legs.flatMap((leg) => leg?.polyline?.features ?? []);
+  const polylineCoords = polylineFeatures.map((feature) => feature.geometry.coordinates);
+
+  // Fall back to leg origin/destination coordinates
+  const coordinates = polylineCoords.length > 0
+    ? polylineCoords
+    : journey.legs
+        .flatMap((leg) => [getCoords(leg.origin), getCoords(leg.destination)])
+        .filter((c): c is [number, number] => c !== null);
+
+  if (coordinates.length < 2) return undefined;
 
   return {
     type: 'FeatureCollection',
@@ -40,12 +61,12 @@ export const useHafas = (start: Location | undefined, end: Location | undefined)
     () =>
       start?.latitude && start?.latitude
         ? [
-            '/api/db/stations',
-            {
-              longitude: start?.longitude,
-              latitude: start?.latitude,
-            },
-          ]
+          '/api/db/stations',
+          {
+            longitude: start?.longitude,
+            latitude: start?.latitude,
+          },
+        ]
         : null,
     getJSON
   );
@@ -54,49 +75,49 @@ export const useHafas = (start: Location | undefined, end: Location | undefined)
     () =>
       end?.latitude && end?.latitude
         ? [
-            '/api/db/stations',
-            {
-              longitude: end?.longitude,
-              latitude: end?.latitude,
-            },
-          ]
+          '/api/db/stations',
+          {
+            longitude: end?.longitude,
+            latitude: end?.latitude,
+          },
+        ]
         : null,
     getJSON
   );
 
-  const swrAdults = useSWR<HafasJourneys>(
+  const swrAdults = useSWR<HafasJourney[]>(
     () =>
       input.adults && swrStartLocation?.data?.id && swrEndLocation?.data?.id
         ? [
-            '/api/db/journey',
-            {
-              from: swrStartLocation?.data?.id,
-              to: swrEndLocation?.data?.id,
-              age: 18,
-            },
-          ]
+          '/api/db/journey',
+          {
+            from: swrStartLocation?.data?.id,
+            to: swrEndLocation?.data?.id,
+            age: 18,
+          },
+        ]
         : null,
     getJSON
   );
 
-  const swrChildren = useSWR<HafasJourneys>(
+  const swrChildren = useSWR<HafasJourney[]>(
     () =>
       input.children && swrStartLocation?.data?.id && swrEndLocation?.data?.id
         ? [
-            '/api/db/journey',
-            {
-              from: swrStartLocation?.data?.id,
-              to: swrEndLocation?.data?.id,
-              age: 12,
-            },
-          ]
+          '/api/db/journey',
+          {
+            from: swrStartLocation?.data?.id,
+            to: swrEndLocation?.data?.id,
+            age: 12,
+          },
+        ]
         : null,
     getJSON
   );
 
   useEffect(() => {
-    const priceAdults = swrAdults?.data?.journeys?.[0]?.price;
-    const priceChildren = swrChildren?.data?.journeys?.[0]?.price;
+    const priceAdults = swrAdults?.data?.[0]?.price;
+    const priceChildren = swrChildren?.data?.[0]?.price;
 
     if (!priceAdults && !priceChildren) {
       setResult({
@@ -107,7 +128,7 @@ export const useHafas = (start: Location | undefined, end: Location | undefined)
       return;
     }
 
-    const journey = swrAdults?.data?.journeys?.[0] || swrChildren?.data?.journeys?.[0];
+    const journey = swrAdults?.data?.[0] || swrChildren?.data?.[0];
 
     const price =
       (priceAdults?.amount ?? 0) * (input.adults || 0) + (priceChildren?.amount ?? 0) * (input.children || 0);

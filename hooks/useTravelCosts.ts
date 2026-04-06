@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import useSWR from 'swr/immutable';
 import { useImmer } from 'use-immer';
 import { getJSON } from '../lib/helper';
-import { Journeys as HafasJourneys } from 'hafas-client';
 
 import { useAppContext } from '../lib/store';
 import { CarResult, HafasResult, HvvResult, Position } from '../lib/types';

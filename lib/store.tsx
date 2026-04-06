@@ -1,19 +1,18 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext } from "react";
 // import { create } from 'zustand';
 // import { UseBoundStore } from 'zustand/index';
 // import createContext from 'zustand/context';
-import { createStore, useStore } from 'zustand';
-import { shallow } from 'zustand/shallow';
-import { devtools } from 'zustand/middleware';
-import { Journeys as HafasJourneys } from 'hafas-client';
+import { createStore, useStore } from "zustand";
+import { shallow } from "zustand/shallow";
+import { devtools } from "zustand/middleware";
 
 // Provider wrapper
-import { useRef } from 'react';
-import {} from 'react';
+import { useRef } from "react";
+import {} from "react";
 
-import { take } from './helper';
-import { merge } from 'merge-anything';
-import { FuelType, HafasResult, Location } from './types';
+import { take } from "./helper";
+import { merge } from "merge-anything";
+import { FuelType, HafasResult, Location } from "./types";
 
 interface CarData {
   duration: number;
@@ -37,7 +36,7 @@ export interface InputData {
   children: number;
 }
 
-const keep = ['start', 'fuelType', 'fuelConsumption', 'adults', 'children'];
+const keep = ["start", "fuelType", "fuelConsumption", "adults", "children"];
 
 export interface ResultData {
   carFastest?: CarData;
@@ -60,8 +59,8 @@ interface AppState extends AppProps {
 
 const initialState: AppProps = {
   input: {
-    start: '',
-    dest: '',
+    start: "",
+    dest: "",
     fuelType: FuelType.E5,
     twoWay: true,
     fuelConsumption: 11,
@@ -71,10 +70,11 @@ const initialState: AppProps = {
   result: {},
 };
 
-const getLocalStorage = (key) => typeof window !== 'undefined' && JSON.parse(window.localStorage.getItem(key));
+const getLocalStorage = (key) =>
+  typeof window !== "undefined" && JSON.parse(window.localStorage.getItem(key));
 
 const setLocalStorage = (key, value) => {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     window.localStorage.setItem(key, JSON.stringify(value));
   }
 };
@@ -84,12 +84,16 @@ type AppStore = ReturnType<typeof createAppStore>;
 const createAppStore = (initProps?: Partial<AppProps>) => {
   return createStore<AppState>()(
     devtools((set) => ({
-      ...merge(initialState, initProps || {}, getLocalStorage('settings') || {}),
+      ...merge(
+        initialState,
+        initProps || {},
+        getLocalStorage("settings") || {},
+      ),
       setInput: (input) => {
         set((state) => {
           const nextInput = { ...state.input, ...input };
 
-          setLocalStorage('settings', { input: take(nextInput, keep) });
+          setLocalStorage("settings", { input: take(nextInput, keep) });
           return { ...state, input: nextInput };
         });
       },
@@ -100,25 +104,30 @@ const createAppStore = (initProps?: Partial<AppProps>) => {
           result: { ...state.result, ...result },
         }));
       },
-    }))
+    })),
   );
 };
 
 export const Context = createContext<AppStore | null>(null);
 
-type AppProviderProps = React.PropsWithChildren<AppProps>;
+type AppProviderProps = React.PropsWithChildren<Partial<AppProps>>;
 
 export const Provider = ({ children, ...props }: AppProviderProps) => {
-  const storeRef = useRef<AppStore>();
+  const storeRef = useRef<AppStore>(undefined);
   if (!storeRef.current) {
     storeRef.current = createAppStore(props);
   }
 
-  return <Context.Provider value={storeRef.current}>{children}</Context.Provider>;
+  return (
+    <Context.Provider value={storeRef.current}>{children}</Context.Provider>
+  );
 };
 
-export function useAppContext<T>(selector: (state: AppState) => T, equalityFn?: (left: T, right: T) => boolean): T {
+export function useAppContext<T>(
+  selector: (state: AppState) => T,
+  equalityFn?: (left: T, right: T) => boolean,
+): T {
   const store = useContext(Context);
-  if (!store) throw new Error('Missing Context.Provider in the tree');
+  if (!store) throw new Error("Missing Context.Provider in the tree");
   return useStore(store, selector, equalityFn || shallow);
 }

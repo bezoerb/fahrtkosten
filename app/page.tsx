@@ -1,5 +1,5 @@
-import type { NextPage } from "next";
-import Head from "next/head";
+"use client";
+
 import { useState } from "react";
 import { Form } from "../components/form";
 import { Map } from "../components/map";
@@ -22,41 +22,11 @@ import {
 } from "../components/ui/dialog";
 import { Settings as SettingsIcon, Car, MapPin } from "lucide-react";
 
-const Home: NextPage = () => {
+export default function Home() {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-background">
-      <Head>
-        <title>Fahrtkostenrechner</title>
-        <meta
-          name="description"
-          content="Vergleiche Fahrtkosten zwischen Auto, Bahn und ÖPNV"
-        />
-        <link rel="icon" href="/favicon.ico" />
-        <link
-          rel="apple-touch-icon"
-          sizes="180x180"
-          href="/apple-touch-icon.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="32x32"
-          href="/favicon-32x32.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="16x16"
-          href="/favicon-16x16.png"
-        />
-        <link rel="manifest" href="/site.webmanifest" />
-        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5" />
-        <meta name="msapplication-TileColor" content="#da532c" />
-        <meta name="theme-color" content="#ffffff" />
-      </Head>
-
       {/* Header */}
       <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
@@ -117,6 +87,4 @@ const Home: NextPage = () => {
       </main>
     </div>
   );
-};
-
-export default Home;
+}
