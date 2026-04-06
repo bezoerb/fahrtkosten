@@ -214,19 +214,19 @@ const ResultComponent = (props) => {
                       <Color color={colorCarShortest} />
                       Kürzeste
                     </p>
-                    <div className="space-y-1">
-                      <InfoRow
-                        label="Preis"
-                        value={formatPrice(result?.carShortest?.price)}
-                      />
-                      <InfoRow
-                        label="Dauer"
-                        value={formatTime(result?.carShortest?.duration)}
-                      />
-                      <InfoRow
-                        label="Strecke"
-                        value={formatDistance(result?.carShortest?.distance)}
-                      />
+                    <div className="space-y-2">
+                      <div className="text-sm">
+                        <span className="text-muted-foreground block">Preis</span>
+                        <span className="font-medium">{formatPrice(result?.carShortest?.price)}</span>
+                      </div>
+                      <div className="text-sm">
+                        <span className="text-muted-foreground block">Dauer</span>
+                        <span className="font-medium">{formatTime(result?.carShortest?.duration)}</span>
+                      </div>
+                      <div className="text-sm">
+                        <span className="text-muted-foreground block">Strecke</span>
+                        <span className="font-medium">{formatDistance(result?.carShortest?.distance)}</span>
+                      </div>
                     </div>
                   </div>
                   <div>
@@ -234,19 +234,19 @@ const ResultComponent = (props) => {
                       <Color color={colorCarFastest} />
                       Schnellste
                     </p>
-                    <div className="space-y-1">
-                      <InfoRow
-                        label="Preis"
-                        value={formatPrice(result?.carFastest?.price)}
-                      />
-                      <InfoRow
-                        label="Dauer"
-                        value={formatTime(result?.carFastest?.duration)}
-                      />
-                      <InfoRow
-                        label="Strecke"
-                        value={formatDistance(result?.carFastest?.distance)}
-                      />
+                    <div className="space-y-2">
+                      <div className="text-sm">
+                        <span className="text-muted-foreground block">Preis</span>
+                        <span className="font-medium">{formatPrice(result?.carFastest?.price)}</span>
+                      </div>
+                      <div className="text-sm">
+                        <span className="text-muted-foreground block">Dauer</span>
+                        <span className="font-medium">{formatTime(result?.carFastest?.duration)}</span>
+                      </div>
+                      <div className="text-sm">
+                        <span className="text-muted-foreground block">Strecke</span>
+                        <span className="font-medium">{formatDistance(result?.carShortest?.distance)}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
