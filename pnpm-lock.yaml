@@ -111,9 +111,6 @@ importers:
       '@types/geojson':
         specifier: ^7946.0.10
         version: 7946.0.10
-      '@types/hafas-client':
-        specifier: ^6.0.0
-        version: 6.0.0
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.17
@@ -1174,9 +1171,6 @@ packages:
 
   '@types/geojson@7946.0.10':
     resolution: {integrity: sha512-Nmh0K3iWQJzniTuPRcJn5hxXkfB1T1pgB89SBig5PlJQU5yocazeu4jATJlaA0GYFKWMqDdvYemoSnF2pXgLVA==}
-
-  '@types/hafas-client@6.0.0':
-    resolution: {integrity: sha512-3J4LMbetIiytsnL7h+Q5jeVEht2fRYBqEQeC4JFLFJ3Pa8OLxQKpaUh6KGD2lfYfDdznFoPJFZ+Midof3PYmeg==}
 
   '@types/json5@0.0.29':
     resolution: {integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==}
@@ -4465,8 +4459,6 @@ snapshots:
 
   '@types/geojson@7946.0.10': {}
 
-  '@types/hafas-client@6.0.0': {}
-
   '@types/json5@0.0.29': {}
 
   '@types/mapbox-gl@2.7.10':
@@ -5033,16 +5025,16 @@ snapshots:
       get-intrinsic: 1.3.0
       is-arguments: 1.2.0
       is-array-buffer: 3.0.5
-      is-date-object: 1.0.5
-      is-regex: 1.1.4
-      is-shared-array-buffer: 1.0.2
+      is-date-object: 1.1.0
+      is-regex: 1.2.1
+      is-shared-array-buffer: 1.0.4
       isarray: 2.0.5
       object-is: 1.1.6
       object-keys: 1.1.1
       object.assign: 4.1.7
       regexp.prototype.flags: 1.5.4
       side-channel: 1.1.0
-      which-boxed-primitive: 1.0.2
+      which-boxed-primitive: 1.1.1
       which-collection: 1.0.2
       which-typed-array: 1.1.19
 
@@ -5224,7 +5216,7 @@ snapshots:
       is-arguments: 1.2.0
       is-map: 2.0.3
       is-set: 2.0.3
-      is-string: 1.0.7
+      is-string: 1.1.1
       isarray: 2.0.5
       stop-iteration-iterator: 1.1.0
 

@@ -71,7 +71,8 @@ const initialState: AppProps = {
 };
 
 const getLocalStorage = (key) =>
-  typeof window !== "undefined" && JSON.parse(window.localStorage.getItem(key));
+  typeof window !== "undefined" &&
+  JSON.parse(window.localStorage.getItem(key) ?? "null");
 
 const setLocalStorage = (key, value) => {
   if (typeof window !== "undefined") {

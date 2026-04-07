@@ -86,7 +86,7 @@ process.env.REACT_APP_MAPBOX_ACCESS_TOKEN =
 
 export const Map = (props) => {
   const result = useTravelCosts();
-  const mapRef = useRef<MapRef>(undefined);
+  const mapRef = useRef<MapRef>(null);
   const [hasTrain, setHasTrain] = useState(false);
   const [hasFastest, setHasFastest] = useState(false);
   const [hasShortest, setHasShortest] = useState(false);
@@ -107,18 +107,20 @@ export const Map = (props) => {
       const shortestAvailable = Boolean(result?.carShortest?.duration);
 
       if (trainAvailable) {
-        extendBounds(
-          bounds,
-          result?.hvv?.duration ? result?.hvv?.geojson : result?.db?.geojson,
-        );
+        const trainGeoJson = result?.hvv?.duration
+          ? result?.hvv?.geojson
+          : result?.db?.geojson;
+        if (trainGeoJson) {
+          extendBounds(bounds, trainGeoJson);
+        }
       }
 
-      if (shortestAvailable) {
-        extendBounds(bounds, result?.carShortest?.geojson);
+      if (shortestAvailable && result?.carShortest?.geojson) {
+        extendBounds(bounds, result.carShortest.geojson);
       }
 
-      if (fastestAvailable) {
-        extendBounds(bounds, result?.carFastest?.geojson);
+      if (fastestAvailable && result?.carFastest?.geojson) {
+        extendBounds(bounds, result.carFastest.geojson);
       }
 
       mapRef?.current?.getMap()?.fitBounds(bounds, { padding: 40 });

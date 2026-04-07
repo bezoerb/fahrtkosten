@@ -7,7 +7,7 @@ import { useAppContext } from '../lib/store';
 import { CarResult, HafasResult, HvvResult, Position } from '../lib/types';
 import { useDirections } from './useDirections';
 import { useGeocode } from './useGeocode';
-import { useHafas } from './useHafas';
+import { useDeutscheBahn } from './useDeutscheBahn';
 import { useHvv } from './useHvv';
 import { useTankerkoenig } from './useTankerkoenig';
 
@@ -20,14 +20,14 @@ type Params = {
 };
 
 type Result = {
-  carShortest: CarResult;
-  carFastest: CarResult;
-  hvv: HvvResult;
-  db: HafasResult;
-  fuelPrice: number;
-  start: Position;
-  dest: Position;
-  ready: boolean;
+  carShortest?: CarResult;
+  carFastest?: CarResult;
+  hvv?: HvvResult;
+  db?: HafasResult;
+  fuelPrice?: number;
+  start?: Position;
+  dest?: Position;
+  ready?: boolean;
 };
 
 export const useTravelCosts = () => {
@@ -44,7 +44,7 @@ export const useTravelCosts = () => {
   const { fastest, shortest } = useDirections(locationStart, locationDest);
   const { result: hvvResult } = useHvv(locationStart, locationDest);
 
-  const { result: hafasResult } = useHafas(locationStart, locationDest);
+  const { result: hafasResult } = useDeutscheBahn(locationStart, locationDest);
 
   useEffect(() => {
     console.log(hafasResult);

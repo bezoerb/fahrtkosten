@@ -10,7 +10,7 @@ import { Badge } from "./ui/badge";
 import { Color } from "./color";
 import { Train, Car, ShoppingCart, ArrowRightLeft } from "lucide-react";
 
-const formatTime = (_minutes: number) => {
+const formatTime = (_minutes: number = 0) => {
   const minutes = Math.round(_minutes || 0);
   const factorDay = 60 * 24;
   const factorHour = 60;
@@ -28,14 +28,14 @@ const formatTime = (_minutes: number) => {
   return minutes ? `${minutes} Minute${minutes !== 1 ? "n" : ""}` : "";
 };
 
-const formatDistance = (distance: number) =>
+const formatDistance = (distance: number = 0) =>
   new Intl.NumberFormat("de-DE", {
     style: "unit",
     unit: "kilometer",
     maximumFractionDigits: 2,
   }).format(distance);
 
-const formatPrice = (price: number) =>
+const formatPrice = (price: number = 0) =>
   new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(
     price,
   );
@@ -65,9 +65,9 @@ const ResultComponent = (props) => {
       <Card className="mb-4">
         <CardContent className="py-3 px-4">
           <div className="flex items-center gap-2 text-sm">
-            <span className="font-medium">{result.start.name}</span>
+            <span className="font-medium">{result.start?.name}</span>
             <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-            <span className="font-medium">{result.dest.name}</span>
+            <span className="font-medium">{result.dest?.name}</span>
           </div>
         </CardContent>
       </Card>
@@ -102,7 +102,10 @@ const ResultComponent = (props) => {
                   label="Dauer (einfach)"
                   value={formatTime(result?.db?.duration)}
                 />
-                <InfoRow label="Umstiege" value={String(result.db.changes)} />
+                <InfoRow
+                  label="Umstiege"
+                  value={String(result.db?.changes ?? 0)}
+                />
               </div>
             </CardContent>
           </Card>
@@ -140,11 +143,11 @@ const ResultComponent = (props) => {
                   value={formatTime(result?.hvv?.duration)}
                 />
               </div>
-              {result?.hvv?.tickets?.length > 0 && (
+              {(result?.hvv?.tickets?.length ?? 0) > 0 && (
                 <div className="mt-3 pt-3 border-t">
                   <p className="text-sm font-medium mb-2">Tickets</p>
                   <div className="space-y-1">
-                    {result.hvv.tickets.map((ticket, index) => (
+                    {result.hvv?.tickets.map((ticket, index) => (
                       <div
                         key={index}
                         className="flex items-center justify-between text-sm"
@@ -216,16 +219,28 @@ const ResultComponent = (props) => {
                     </p>
                     <div className="space-y-2">
                       <div className="text-sm">
-                        <span className="text-muted-foreground block">Preis</span>
-                        <span className="font-medium">{formatPrice(result?.carShortest?.price)}</span>
+                        <span className="text-muted-foreground block">
+                          Preis
+                        </span>
+                        <span className="font-medium">
+                          {formatPrice(result?.carShortest?.price)}
+                        </span>
                       </div>
                       <div className="text-sm">
-                        <span className="text-muted-foreground block">Dauer</span>
-                        <span className="font-medium">{formatTime(result?.carShortest?.duration)}</span>
+                        <span className="text-muted-foreground block">
+                          Dauer
+                        </span>
+                        <span className="font-medium">
+                          {formatTime(result?.carShortest?.duration)}
+                        </span>
                       </div>
                       <div className="text-sm">
-                        <span className="text-muted-foreground block">Strecke</span>
-                        <span className="font-medium">{formatDistance(result?.carShortest?.distance)}</span>
+                        <span className="text-muted-foreground block">
+                          Strecke
+                        </span>
+                        <span className="font-medium">
+                          {formatDistance(result?.carShortest?.distance)}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -236,16 +251,28 @@ const ResultComponent = (props) => {
                     </p>
                     <div className="space-y-2">
                       <div className="text-sm">
-                        <span className="text-muted-foreground block">Preis</span>
-                        <span className="font-medium">{formatPrice(result?.carFastest?.price)}</span>
+                        <span className="text-muted-foreground block">
+                          Preis
+                        </span>
+                        <span className="font-medium">
+                          {formatPrice(result?.carFastest?.price)}
+                        </span>
                       </div>
                       <div className="text-sm">
-                        <span className="text-muted-foreground block">Dauer</span>
-                        <span className="font-medium">{formatTime(result?.carFastest?.duration)}</span>
+                        <span className="text-muted-foreground block">
+                          Dauer
+                        </span>
+                        <span className="font-medium">
+                          {formatTime(result?.carFastest?.duration)}
+                        </span>
                       </div>
                       <div className="text-sm">
-                        <span className="text-muted-foreground block">Strecke</span>
-                        <span className="font-medium">{formatDistance(result?.carShortest?.distance)}</span>
+                        <span className="text-muted-foreground block">
+                          Strecke
+                        </span>
+                        <span className="font-medium">
+                          {formatDistance(result?.carShortest?.distance)}
+                        </span>
                       </div>
                     </div>
                   </div>

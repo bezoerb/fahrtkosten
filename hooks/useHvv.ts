@@ -33,10 +33,10 @@ export const calculateTickets = (
 
   const ticketsAdult = (
     !twoWay ? [hvvAdultSingle] : hvvAdultDay ? [hvvAdultDay] : [hvvAdultSingle, hvvAdultSingle]
-  ).filter((v) => v);
+  ).filter((v): v is TicketInfo => !!v);
   const ticketsChild = (
     !twoWay ? [hvvChildSingle] : hvvChildDay ? [hvvChildDay] : [hvvChildSingle, hvvChildSingle]
-  ).filter((v) => v);
+  ).filter((v): v is TicketInfo => !!v);
 
   // Validierung: Erwachsenen-Tickets erforderlich, wenn Erwachsene vorhanden sind
   // Kinder-Tickets erforderlich, wenn Kinder vorhanden sind
@@ -46,13 +46,13 @@ export const calculateTickets = (
 
   const specialTickets = Array.from(Array(Math.max(0, adults + children)))
     .map(() => specialTicket)
-    .filter((v) => v);
+    .filter((v): v is TicketInfo => !!v);
 
   const specialPrice = getPrice(specialTickets);
   const naivePrice =
     (adults > 0 ? getPrice(ticketsAdult) * adults : 0) + (children > 0 ? getPrice(ticketsChild) * children : 0);
   let dayPrice = Infinity;
-  let dayTickets = [];
+  let dayTickets: TicketInfo[] = [];
 
   // hvvAdultDay deckt 1 Erwachsenen + bis zu 3 Kinder ab
   if (adults > 0 && hvvAdultDay) {
@@ -65,7 +65,7 @@ export const calculateTickets = (
     dayPrice = getPrice(dayTickets);
   }
   let groupPrice = Infinity;
-  let groupTickets = [];
+  let groupTickets: TicketInfo[] = [];
 
   // hvvGroup deckt bis zu 5 Personen (Erwachsene oder Kinder) ab
   if (adults + children > 1 && hvvGroup) {
@@ -169,11 +169,12 @@ export const useHvv = (start: Location | undefined, end: Location | undefined) =
     const hvvTickets = calculateTickets(input.adults, input.children, input.twoWay, ticketInfos);
     const hvvPrice = getPrice(hvvTickets);
 
+    const schedule = swr.data?.schedules?.[0];
     setResult({
-      duration: swr.data?.schedules?.[0]?.time,
+      duration: schedule?.time ?? 0,
       price: hvvPrice,
       tickets: hvvTickets,
-      geojson: getGeojson(swr.data?.schedules?.[0]),
+      geojson: schedule ? getGeojson(schedule) : undefined,
     });
   }, [input.adults, input.children, input.twoWay, swr.data]);
 

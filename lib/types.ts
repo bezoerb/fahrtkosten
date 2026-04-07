@@ -1,5 +1,53 @@
 import { FeatureCollection } from "geojson";
 
+// FPTF types matching db-vendo-client response format
+export type FptfLocation = {
+  type: 'location';
+  latitude?: number;
+  longitude?: number;
+  address?: string;
+  id?: string;
+};
+
+export type FptfStation = {
+  type: 'station';
+  id?: string;
+  name?: string;
+  location?: FptfLocation;
+  products?: Record<string, boolean>;
+};
+
+export type FptfStop = {
+  type: 'stop';
+  id?: string;
+  name?: string;
+  location?: FptfLocation;
+  products?: Record<string, boolean>;
+};
+
+export type FptfStopOrStation = FptfLocation | FptfStation | FptfStop;
+
+export type FptfLeg = {
+  origin?: FptfStopOrStation;
+  destination?: FptfStopOrStation;
+  plannedDeparture?: string;
+  plannedArrival?: string;
+  departure?: string;
+  arrival?: string;
+  walking?: boolean;
+  polyline?: FeatureCollection;
+};
+
+export type FptfJourney = {
+  type?: 'journey';
+  legs: FptfLeg[];
+  price?: {
+    amount?: number;
+    currency?: string;
+  };
+  refreshToken?: string;
+};
+
 export type Location = {
   latitude: number;
   longitude: number;
@@ -222,7 +270,7 @@ export type HvvResult = {
   price: number;
   duration: number;
   tickets: TicketInfo[];
-  geojson: GeoJson;
+  geojson?: GeoJson;
 };
 
 export type HafasResult = {
@@ -231,3 +279,9 @@ export type HafasResult = {
   geojson?: FeatureCollection;
   changes: number;
 }
+
+export type DbResults = {
+  cheapest: HafasResult | undefined;
+  best: HafasResult | undefined;
+  journeys: HafasResult[];
+};
