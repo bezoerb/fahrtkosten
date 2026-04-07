@@ -9,6 +9,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const client = createClient(profile, 'fahrtkosten.zoerb.dev');
 
+export const maxDuration = 30;
+
+const REQUEST_TIMEOUT_MS = 25_000;
+
 const CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const CACHE_DIR = join(tmpdir(), 'fahrtkosten-db-stations-cache');
 
@@ -54,7 +58,10 @@ export async function GET(request: NextRequest) {
       if (cached) {
         return NextResponse.json(cached);
       }
-      const stations = await client.locations(search, { results: 3 });
+      const stations = await Promise.race([
+        client.locations(search, { results: 3 }),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('DB API timeout')), REQUEST_TIMEOUT_MS)),
+      ]);
       await setCache(cacheKey, stations);
       return NextResponse.json(stations);
     }
@@ -71,7 +78,10 @@ export async function GET(request: NextRequest) {
         longitude: parseFloat(longitude),
         ...(address ? { address } : {}),
       };
-      const stations = await client.nearby(location, { results: 1 });
+      const stations = await Promise.race([
+        client.nearby(location, { results: 1 }),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('DB API timeout')), REQUEST_TIMEOUT_MS)),
+      ]);
       const [station] = stations;
       await setCache(cacheKey, station);
       return NextResponse.json(station);

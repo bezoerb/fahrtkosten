@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const client = createClient(profile, 'fahrtkosten.zoerb.dev');
 
+export const maxDuration = 60;
+
 const fetchJourneys = async (from: string, to: string, params: any, day = Date.now()) => {
   try {
     const when = new Date(day);
