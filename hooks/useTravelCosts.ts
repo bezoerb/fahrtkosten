@@ -62,11 +62,11 @@ export const useTravelCosts = () => {
 
   const { price: fuelPrice } = useTankerkoenig(locationStart, input.fuelType);
 
-  const { fastest, shortest, cheapestStation, fastestOnRouteStations } = useDirections(locationStart, locationDest);
+  const { fastest, shortest, cheapestStation, fastestOnRouteStations, averageFuelPrice } = useDirections(locationStart, locationDest);
   const { result: hvvResult } = useHvv(locationStart, locationDest);
 
   const { result: hafasResult } = useDeutscheBahn(locationStart, locationDest);
-  const effectiveFuelPrice = cheapestStation?.station.price ?? fuelPrice;
+  const effectiveFuelPrice = averageFuelPrice ?? cheapestStation?.station.price ?? fuelPrice;
 
   const carFastest = fastest
     ? {

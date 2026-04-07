@@ -3,10 +3,67 @@ import useSWR from 'swr/immutable';
 import { getJSON } from '../lib/helper';
 
 import { useAppContext } from '../lib/store';
-import type { DirectionsResponse, Location, CarResult, Route, GeoJson } from '../lib/types';
+import { haversineDistance, routeLengthKm } from '../lib/geo';
+import type { AlongRouteStation, DirectionsResponse, Location, CarResult, Route, GeoJson } from '../lib/types';
 import { useFuelAlongRoute } from './useFuelAlongRoute';
 
 const DIRECT_ROUTE_THRESHOLD_KM = 0.5;
+const REFUEL_INTERVAL_KM = 300;
+
+/**
+ * Pick the cheapest on-route station per ~REFUEL_INTERVAL_KM segment.
+ * Always includes a station near the start of the route.
+ */
+const cheapestPerSegment = (
+  stations: AlongRouteStation[],
+  routeCoordinates: [number, number][] | undefined,
+): AlongRouteStation[] => {
+  const onRoute = stations.filter(
+    (s) => s.distanceToRoute <= DIRECT_ROUTE_THRESHOLD_KM
+  );
+  if (!onRoute.length) return [];
+
+  const totalKm = routeCoordinates ? routeLengthKm(routeCoordinates) : 0;
+  // Always at least 1 segment; add one per REFUEL_INTERVAL_KM after that
+  const segments = Math.max(1, 1 + Math.ceil(Math.max(0, totalKm - REFUEL_INTERVAL_KM) / REFUEL_INTERVAL_KM));
+
+  if (segments <= 1) {
+    return onRoute[0] ? [onRoute[0]] : [];
+  }
+
+  // Assign each station to a segment based on its position along the route
+  const segmentSize = totalKm / segments;
+  const buckets: (AlongRouteStation | null)[] = Array.from({ length: segments }, () => null);
+
+  for (const station of onRoute) {
+    const stationCoord: [number, number] = [station.station.lng, station.station.lat];
+    let minDistAlongRoute = 0;
+    let accumulated = 0;
+    let bestProjectionDist = Infinity;
+
+    if (routeCoordinates && routeCoordinates.length >= 2) {
+      for (let i = 1; i < routeCoordinates.length; i++) {
+        const segDist = haversineDistance(routeCoordinates[i - 1], routeCoordinates[i]);
+        const distToSegStart = haversineDistance(stationCoord, routeCoordinates[i - 1]);
+        const distToSegEnd = haversineDistance(stationCoord, routeCoordinates[i]);
+        const minDist = Math.min(distToSegStart, distToSegEnd);
+        if (minDist < bestProjectionDist) {
+          bestProjectionDist = minDist;
+          minDistAlongRoute = accumulated + (distToSegStart < distToSegEnd ? 0 : segDist);
+        }
+        accumulated += segDist;
+      }
+    }
+
+    const segmentIndex = Math.min(segments - 1, Math.floor(minDistAlongRoute / segmentSize));
+    const current = buckets[segmentIndex];
+    if (!current || station.effectivePrice < current.effectivePrice) {
+      buckets[segmentIndex] = station;
+    }
+  }
+
+  return buckets.filter((s): s is AlongRouteStation => s !== null);
+};
 
 const getGeojson = (route: Route): GeoJson => ({
   type: 'FeatureCollection',
@@ -126,12 +183,23 @@ export const useDirections = (start: Location | undefined, end: Location | undef
   }, [shortestRoute, shortestAlongRoute.data?.cheapest]);
 
   const fastestOnRouteStations = useMemo(
-    () =>
-      (fastestAlongRoute.data?.stations ?? []).filter(
-        (station) => station.distanceToRoute <= DIRECT_ROUTE_THRESHOLD_KM
-      ),
-    [fastestAlongRoute.data?.stations]
+    () => cheapestPerSegment(
+      fastestAlongRoute.data?.stations ?? [],
+      fastestCoordinates,
+    ),
+    [fastestAlongRoute.data?.stations, fastestCoordinates]
   );
+
+  const averageFuelPrice = useMemo(() => {
+    const cheapestStationPrice = shortestAlongRoute.data?.cheapest?.station.price;
+    const fastestPrices = fastestOnRouteStations.map((s) => s.station.price);
+    const allPrices = [
+      ...(cheapestStationPrice ? [cheapestStationPrice] : []),
+      ...fastestPrices,
+    ];
+    if (!allPrices.length) return null;
+    return allPrices.reduce((sum, p) => sum + p, 0) / allPrices.length;
+  }, [shortestAlongRoute.data?.cheapest, fastestOnRouteStations]);
 
   const isLoading =
     swr.isLoading ||
@@ -147,5 +215,6 @@ export const useDirections = (start: Location | undefined, end: Location | undef
     shortest,
     cheapestStation: shortestAlongRoute.data?.cheapest ?? null,
     fastestOnRouteStations,
+    averageFuelPrice,
   };
 };
