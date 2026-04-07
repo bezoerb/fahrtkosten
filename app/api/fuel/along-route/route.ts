@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
     }
 
     for (const station of listResult.value) {
-      const stationPrice = station[fuelTypeInput];
+      const stationPrice = station.price ?? station[fuelTypeInput];
       if (typeof stationPrice !== 'number' || !Number.isFinite(stationPrice)) {
         continue;
       }
