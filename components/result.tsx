@@ -193,7 +193,7 @@ const ResultComponent = (props) => {
                   <Car className="h-4 w-4" />
                   Auto
                   <span className="text-xs font-normal text-muted-foreground">
-                    (<FuelPrice price={result.fuelPrice} suffix=" €/l" />)
+                    {result.fuelPrice != null && (<>(<FuelPrice price={result.fuelPrice} suffix=" €/l" />)</>)}
                   </span>
                 </CardTitle>
                 {result?.carShortest?.distance ===
