@@ -85,6 +85,30 @@ export default function Home() {
           </Card>
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="border-t py-4 text-center text-xs text-muted-foreground">
+        <p>
+          Preisdaten von{" "}
+          <a
+            href="https://creativecommons.tankerkoenig.de/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-foreground"
+          >
+            Tankerkönig
+          </a>{" "}
+          unter{" "}
+          <a
+            href="https://creativecommons.org/licenses/by/4.0/deed.de"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-foreground"
+          >
+            CC BY 4.0
+          </a>
+        </p>
+      </footer>
     </div>
   );
 }

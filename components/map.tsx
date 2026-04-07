@@ -101,19 +101,30 @@ const formatMarkerPrice = (price: number) =>
 
 const GasStationMarker = ({
   station,
-  compact,
 }: {
   station: AlongRouteStation;
-  compact?: boolean;
 }) => (
-  <Marker longitude={station.station.lng} latitude={station.station.lat}>
+  <Marker
+    longitude={station.station.lng}
+    latitude={station.station.lat}
+    anchor="bottom"
+  >
     <div
-      className={`rounded-full border border-border bg-card shadow px-2 py-1 ${
-        compact ? "text-[10px]" : "text-xs"
-      }`}
+      className="flex flex-col items-center"
       title={`${station.station.name} (${formatMarkerPrice(station.station.price)})`}
     >
-      ⛽ {formatMarkerPrice(station.station.price)}
+      <div className="rounded-lg border border-border bg-card shadow-md px-2 py-1 text-xs font-medium whitespace-nowrap">
+        ⛽ {station.station.brand || station.station.name} · {formatMarkerPrice(station.station.price)}
+      </div>
+      <div
+        className="w-0 h-0"
+        style={{
+          borderLeft: "6px solid transparent",
+          borderRight: "6px solid transparent",
+          borderTop: "6px solid hsl(var(--border))",
+        }}
+      />
+      <div className="w-2 h-2 rounded-full bg-red-500 border border-white shadow -mt-[2px]" />
     </div>
   </Marker>
 );
@@ -192,10 +203,10 @@ export const Map = (props) => {
         <MapboxMap
           reuseMaps={true}
           attributionControl={false}
-          scrollZoom={false}
-          touchPitch={false}
-          touchZoomRotate={false}
-          dragPan={false}
+          scrollZoom={true}
+          touchPitch={true}
+          touchZoomRotate={true}
+          dragPan={true}
           dragRotate={false}
           ref={mapRef}
           initialViewState={{
@@ -261,7 +272,6 @@ export const Map = (props) => {
               <GasStationMarker
                 key={`fastest-fuel-${station.station.id}`}
                 station={station}
-                compact
               />
             ))}
         </MapboxMap>

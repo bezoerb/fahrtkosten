@@ -23,6 +23,10 @@ export const get = async (uri, params) => {
 
 export const getJSON = async ([uri, params]) => {
   const response = await get(uri, params || {});
+  if (!response.ok) {
+    const error = new Error(`Request failed with status ${response.status}`);
+    throw error;
+  }
   return response.json();
 };
 
@@ -40,6 +44,10 @@ export const post = async (uri, body) => {
 
 export const postJSON = async ([uri, body]) => {
   const response = await post(uri, body || {});
+  if (!response.ok) {
+    const error = new Error(`Request failed with status ${response.status}`);
+    throw error;
+  }
   return response.json();
 };
 

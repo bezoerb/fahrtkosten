@@ -5,8 +5,8 @@ export type StationCandidate = {
   distanceToRoute: number;
 };
 
-export const MAX_SAMPLES = 8;
-export const MIN_INTERVAL_KM = 20;
+export const MAX_SAMPLES = 4;
+export const MIN_INTERVAL_KM = 30;
 export const MAX_DISTANCE_KM = 5;
 export const DIRECT_THRESHOLD_KM = 0.5;
 export const FUEL_COST_PER_KM = 0.15;

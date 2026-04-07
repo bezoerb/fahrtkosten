@@ -107,6 +107,9 @@ const toCarResult = (route: Route | undefined): CarResult | undefined => {
   };
 };
 
+const MAX_REROUTE_CANDIDATES = 3;
+const MAX_DETOUR_KM = 5;
+
 export const useDirections = (start: Location | undefined, end: Location | undefined) => {
   const input = useAppContext((state) => state.input);
 
@@ -131,44 +134,112 @@ export const useDirections = (start: Location | undefined, end: Location | undef
     [swr.data]
   );
 
+  const initialShortestDistanceKm = initialShortestRoute ? initialShortestRoute.distance / 1000 : 0;
+
   const shortestFuel = useFuelAlongRoute(getRouteCoordinates(initialShortestRoute), input.fuelType);
 
-  const rerouteWaypoint = shortestFuel.data?.cheapest;
-  const shouldRerouteShortest =
-    Boolean(initialShortestRoute) &&
-    Boolean(rerouteWaypoint) &&
-    (rerouteWaypoint?.distanceToRoute ?? 0) > DIRECT_ROUTE_THRESHOLD_KM;
+  // Pick top N candidates for rerouting
+  const rerouteCandidates = useMemo(() => {
+    const stations = shortestFuel.data?.stations ?? [];
+    return stations.slice(0, MAX_REROUTE_CANDIDATES);
+  }, [shortestFuel.data?.stations]);
 
-  const reroutedDirections = useSWR<DirectionsResponse>(
+  const canReroute = Boolean(initialShortestRoute) && Boolean(start?.latitude) && Boolean(end?.latitude);
+
+  // Reroute through each candidate in parallel
+  const reroute0 = useSWR<DirectionsResponse>(
     () =>
-      shouldRerouteShortest && start?.latitude && end?.latitude
+      canReroute && rerouteCandidates[0]
         ? [
             '/api/directions',
             {
-              'lng-start': start.longitude,
-              'lat-start': start.latitude,
-              'lng-dest': end.longitude,
-              'lat-dest': end.latitude,
-              'wp-lng-0': rerouteWaypoint?.station.lng,
-              'wp-lat-0': rerouteWaypoint?.station.lat,
+              'lng-start': start!.longitude,
+              'lat-start': start!.latitude,
+              'lng-dest': end!.longitude,
+              'lat-dest': end!.latitude,
+              'wp-lng-0': rerouteCandidates[0].station.lng,
+              'wp-lat-0': rerouteCandidates[0].station.lat,
             },
           ]
         : null,
     getJSON
   );
 
-  const { shortestRoute: reroutedShortestRoute } = useMemo(
-    () => getFastestAndShortest(reroutedDirections.data),
-    [reroutedDirections.data]
+  const reroute1 = useSWR<DirectionsResponse>(
+    () =>
+      canReroute && rerouteCandidates[1]
+        ? [
+            '/api/directions',
+            {
+              'lng-start': start!.longitude,
+              'lat-start': start!.latitude,
+              'lng-dest': end!.longitude,
+              'lat-dest': end!.latitude,
+              'wp-lng-0': rerouteCandidates[1].station.lng,
+              'wp-lat-0': rerouteCandidates[1].station.lat,
+            },
+          ]
+        : null,
+    getJSON
   );
 
-  const shortestRoute = reroutedShortestRoute ?? initialShortestRoute;
-  const reroutedShortestCoordinates = getRouteCoordinates(reroutedShortestRoute);
+  const reroute2 = useSWR<DirectionsResponse>(
+    () =>
+      canReroute && rerouteCandidates[2]
+        ? [
+            '/api/directions',
+            {
+              'lng-start': start!.longitude,
+              'lat-start': start!.latitude,
+              'lng-dest': end!.longitude,
+              'lat-dest': end!.latitude,
+              'wp-lng-0': rerouteCandidates[2].station.lng,
+              'wp-lat-0': rerouteCandidates[2].station.lat,
+            },
+          ]
+        : null,
+    getJSON
+  );
+
+  // Pick the best candidate: acceptable detour + cheapest effective price
+  const { bestReroutedRoute, bestStation } = useMemo(() => {
+    const attempts = [
+      { data: reroute0.data, candidate: rerouteCandidates[0] },
+      { data: reroute1.data, candidate: rerouteCandidates[1] },
+      { data: reroute2.data, candidate: rerouteCandidates[2] },
+    ];
+
+    let bestRoute: Route | undefined;
+    let bestStn: AlongRouteStation | undefined;
+    let bestEffective = Infinity;
+
+    for (const { data, candidate } of attempts) {
+      if (!data || !candidate) continue;
+      const { shortestRoute: candidateRoute } = getFastestAndShortest(data);
+      if (!candidateRoute) continue;
+
+      const detourKm = candidateRoute.distance / 1000 - initialShortestDistanceKm;
+      if (detourKm > MAX_DETOUR_KM) continue;
+
+      // Effective price accounting for actual detour fuel cost
+      const effective = candidate.station.price + detourKm * 0.15;
+      if (effective < bestEffective) {
+        bestEffective = effective;
+        bestRoute = candidateRoute;
+        bestStn = candidate;
+      }
+    }
+
+    return { bestReroutedRoute: bestRoute, bestStation: bestStn };
+  }, [reroute0.data, reroute1.data, reroute2.data, rerouteCandidates, initialShortestDistanceKm]);
+
+  const shortestRoute = bestReroutedRoute ?? initialShortestRoute;
+  const reroutedShortestCoordinates = bestReroutedRoute ? getRouteCoordinates(bestReroutedRoute) : undefined;
   const fastestCoordinates = getRouteCoordinates(fastestRoute);
 
   const reroutedShortestAlongRoute = useFuelAlongRoute(reroutedShortestCoordinates, input.fuelType);
+  const shortestAlongRoute = bestReroutedRoute ? reroutedShortestAlongRoute : shortestFuel;
   const fastestAlongRoute = useFuelAlongRoute(fastestCoordinates, input.fuelType);
-  const shortestAlongRoute = reroutedShortestRoute ? reroutedShortestAlongRoute : shortestFuel;
 
   const fastest = useMemo(() => toCarResult(fastestRoute), [fastestRoute]);
 
@@ -178,9 +249,9 @@ export const useDirections = (start: Location | undefined, end: Location | undef
       return undefined;
     }
 
-    result.station = shortestAlongRoute.data?.cheapest ?? undefined;
+    result.station = bestStation ?? shortestAlongRoute.data?.cheapest ?? undefined;
     return result;
-  }, [shortestRoute, shortestAlongRoute.data?.cheapest]);
+  }, [shortestRoute, bestStation, shortestAlongRoute.data?.cheapest]);
 
   const fastestOnRouteStations = useMemo(
     () => cheapestPerSegment(
@@ -191,7 +262,7 @@ export const useDirections = (start: Location | undefined, end: Location | undef
   );
 
   const averageFuelPrice = useMemo(() => {
-    const cheapestStationPrice = shortestAlongRoute.data?.cheapest?.station.price;
+    const cheapestStationPrice = (bestStation ?? shortestAlongRoute.data?.cheapest)?.station.price;
     const fastestPrices = fastestOnRouteStations.map((s) => s.station.price);
     const allPrices = [
       ...(cheapestStationPrice ? [cheapestStationPrice] : []),
@@ -199,11 +270,13 @@ export const useDirections = (start: Location | undefined, end: Location | undef
     ];
     if (!allPrices.length) return null;
     return allPrices.reduce((sum, p) => sum + p, 0) / allPrices.length;
-  }, [shortestAlongRoute.data?.cheapest, fastestOnRouteStations]);
+  }, [bestStation, shortestAlongRoute.data?.cheapest, fastestOnRouteStations]);
 
   const isLoading =
     swr.isLoading ||
-    reroutedDirections.isLoading ||
+    reroute0.isLoading ||
+    reroute1.isLoading ||
+    reroute2.isLoading ||
     reroutedShortestAlongRoute.isLoading ||
     shortestAlongRoute.isLoading ||
     fastestAlongRoute.isLoading;
@@ -213,7 +286,7 @@ export const useDirections = (start: Location | undefined, end: Location | undef
     isLoading,
     fastest,
     shortest,
-    cheapestStation: shortestAlongRoute.data?.cheapest ?? null,
+    cheapestStation: bestStation ?? shortestAlongRoute.data?.cheapest ?? null,
     fastestOnRouteStations,
     averageFuelPrice,
   };
