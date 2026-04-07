@@ -113,8 +113,9 @@ const GasStationMarker = ({
       className="flex flex-col items-center"
       title={`${station.station.name} (${formatMarkerPrice(station.station.price)})`}
     >
-      <div className="rounded-lg border border-border bg-card shadow-md px-2 py-1 text-xs font-medium whitespace-nowrap">
-        ⛽ {station.station.brand || station.station.name} · {formatMarkerPrice(station.station.price)}
+      <div className="rounded-lg border border-border bg-card shadow-md px-2 py-1 text-xs font-medium whitespace-nowrap text-center">
+        <div>⛽ {station.station.brand || station.station.name}</div>
+        <div>{formatMarkerPrice(station.station.price)}</div>
       </div>
       <div
         className="w-0 h-0"
