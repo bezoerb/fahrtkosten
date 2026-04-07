@@ -91,13 +91,26 @@ const Legend = (props: LegendProps) => {
   );
 };
 
-const formatMarkerPrice = (price: number) =>
+const formatPriceTitle = (price: number) =>
   new Intl.NumberFormat("de-DE", {
     style: "currency",
     currency: "EUR",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 3,
   }).format(price);
+
+export const FuelPrice = ({ price, suffix }: { price: number; suffix?: string }) => {
+  const formatted = price.toFixed(3);
+  const main = formatted.slice(0, -1);
+  const last = formatted.slice(-1);
+  return (
+    <span>
+      {main.replace(".", ",")}
+      <sup>{last}</sup>
+      {suffix ?? " €"}
+    </span>
+  );
+};
 
 const GasStationMarker = ({
   station,
@@ -111,11 +124,11 @@ const GasStationMarker = ({
   >
     <div
       className="flex flex-col items-center"
-      title={`${station.station.name} (${formatMarkerPrice(station.station.price)})`}
+      title={`${station.station.name} (${formatPriceTitle(station.station.price)})`}
     >
       <div className="rounded-lg border border-border bg-card shadow-md px-2 py-1 text-xs font-medium whitespace-nowrap text-center">
         <div>⛽ {station.station.brand || station.station.name}</div>
-        <div>{formatMarkerPrice(station.station.price)}</div>
+        <div><FuelPrice price={station.station.price} /></div>
       </div>
       <div
         className="w-0 h-0"

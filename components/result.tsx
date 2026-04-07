@@ -8,6 +8,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Color } from "./color";
+import { FuelPrice } from "./map";
 import { Train, Car, ShoppingCart, ArrowRightLeft } from "lucide-react";
 
 const formatTime = (_minutes: number = 0) => {
@@ -192,7 +193,7 @@ const ResultComponent = (props) => {
                   <Car className="h-4 w-4" />
                   Auto
                   <span className="text-xs font-normal text-muted-foreground">
-                    ({result.fuelPrice} €/l)
+                    (<FuelPrice price={result.fuelPrice} suffix=" €/l" />)
                   </span>
                 </CardTitle>
                 {result?.carShortest?.distance ===
