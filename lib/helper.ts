@@ -1,6 +1,10 @@
 export const getUrl = (uri, params) => {
   const url = new URL(uri, 'http://localhost:3000/');
-  Object.entries<string>(params || {}).forEach(([key, value]) => url.searchParams.set(key, value));
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      url.searchParams.set(key, String(value));
+    }
+  });
 
   return url.toString().replace('http://localhost:3000/', '/');
 };
@@ -19,6 +23,23 @@ export const get = async (uri, params) => {
 
 export const getJSON = async ([uri, params]) => {
   const response = await get(uri, params || {});
+  return response.json();
+};
+
+export const post = async (uri, body) => {
+  const options = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+    },
+    body: JSON.stringify(body),
+  };
+
+  return fetch(uri, options);
+};
+
+export const postJSON = async ([uri, body]) => {
+  const response = await post(uri, body || {});
   return response.json();
 };
 

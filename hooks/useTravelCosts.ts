@@ -4,7 +4,7 @@ import { useImmer } from 'use-immer';
 import { getJSON } from '../lib/helper';
 
 import { useAppContext } from '../lib/store';
-import { CarResult, HafasResult, HvvResult, Position } from '../lib/types';
+import { AlongRouteStation, CarResult, HafasResult, HvvResult, Position } from '../lib/types';
 import { useDirections } from './useDirections';
 import { useGeocode } from './useGeocode';
 import { useDeutscheBahn } from './useDeutscheBahn';
@@ -27,7 +27,28 @@ type Result = {
   fuelPrice?: number;
   start?: Position;
   dest?: Position;
+  fastestOnRouteStations?: AlongRouteStation[];
   ready?: boolean;
+};
+
+const calculatePrice = (
+  distanceInKm: number | undefined,
+  fuelPrice: number,
+  fuelConsumption: number,
+  twoWay: boolean
+) => {
+  if (
+    !distanceInKm ||
+    !fuelPrice ||
+    !fuelConsumption ||
+    !Number.isFinite(distanceInKm) ||
+    !Number.isFinite(fuelPrice) ||
+    !Number.isFinite(fuelConsumption)
+  ) {
+    return 0;
+  }
+
+  return (distanceInKm / 100) * fuelPrice * fuelConsumption * (twoWay ? 2 : 1);
 };
 
 export const useTravelCosts = () => {
@@ -41,14 +62,26 @@ export const useTravelCosts = () => {
 
   const { price: fuelPrice } = useTankerkoenig(locationStart, input.fuelType);
 
-  const { fastest, shortest } = useDirections(locationStart, locationDest);
+  const { fastest, shortest, cheapestStation, fastestOnRouteStations } = useDirections(locationStart, locationDest);
   const { result: hvvResult } = useHvv(locationStart, locationDest);
 
   const { result: hafasResult } = useDeutscheBahn(locationStart, locationDest);
+  const effectiveFuelPrice = cheapestStation?.station.price ?? fuelPrice;
 
-  useEffect(() => {
-    console.log(hafasResult);
-  }, [hafasResult]);
+  const carFastest = fastest
+    ? {
+        ...fastest,
+        price: calculatePrice(fastest.distance, effectiveFuelPrice, input.fuelConsumption, input.twoWay),
+      }
+    : undefined;
+
+  const carShortest = shortest
+    ? {
+        ...shortest,
+        price: calculatePrice(shortest.distance, effectiveFuelPrice, input.fuelConsumption, input.twoWay),
+        station: cheapestStation ?? shortest.station,
+      }
+    : undefined;
 
   useEffect(() => {
     setResult((draft) => {
@@ -63,16 +96,20 @@ export const useTravelCosts = () => {
         draft.hvv = hvvResult;
       }
 
-      if (draft.fuelPrice !== fuelPrice) {
-        draft.fuelPrice = fuelPrice;
+      if (draft.fuelPrice !== effectiveFuelPrice) {
+        draft.fuelPrice = effectiveFuelPrice;
       }
 
-      if (JSON.stringify(draft.carShortest) !== JSON.stringify(shortest)) {
-        draft.carShortest = shortest;
+      if (JSON.stringify(draft.carShortest) !== JSON.stringify(carShortest)) {
+        draft.carShortest = carShortest;
       }
 
-      if (JSON.stringify(draft.carFastest) !== JSON.stringify(fastest)) {
-        draft.carFastest = fastest;
+      if (JSON.stringify(draft.carFastest) !== JSON.stringify(carFastest)) {
+        draft.carFastest = carFastest;
+      }
+
+      if (JSON.stringify(draft.fastestOnRouteStations) !== JSON.stringify(fastestOnRouteStations)) {
+        draft.fastestOnRouteStations = fastestOnRouteStations;
       }
 
       if (JSON.stringify(draft.db) !== JSON.stringify(hafasResult)) {
@@ -80,13 +117,23 @@ export const useTravelCosts = () => {
         draft.db = hafasResult;
       }
 
-      const ready = fastest && fastest?.duration !== Infinity;
+      const ready = carFastest && carFastest?.duration !== Infinity;
 
       if (draft.ready !== ready) {
         draft.ready = ready;
       }
     });
-  }, [locationStart, locationDest, fastest, shortest, setResult, hvvResult, fuelPrice, hafasResult]);
+  }, [
+    locationStart,
+    locationDest,
+    carFastest,
+    carShortest,
+    setResult,
+    hvvResult,
+    effectiveFuelPrice,
+    fastestOnRouteStations,
+    hafasResult,
+  ]);
 
   return result;
 };

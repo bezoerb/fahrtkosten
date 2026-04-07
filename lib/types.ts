@@ -91,6 +91,25 @@ export type TankerkoenigResponse = {
   stations: TankerkoenigStation[];
 };
 
+export type AlongRouteStation = {
+  station: {
+    id: string;
+    name: string;
+    brand: string;
+    price: number;
+    lat: number;
+    lng: number;
+  };
+  distanceToRoute: number;
+  detourKm: number;
+  effectivePrice: number;
+};
+
+export type AlongRouteResponse = {
+  stations: AlongRouteStation[];
+  cheapest: AlongRouteStation | null;
+};
+
 export type MapboxLocation = [longitude: number, latitude: number];
 
 export type MapboxWaypoint = {
@@ -148,6 +167,7 @@ export type CarResult = {
   distance: number;
   price: number;
   geojson: GeoJson;
+  station?: AlongRouteStation;
 };
 
 type HvvCoordinateValue = {

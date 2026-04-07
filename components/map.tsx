@@ -1,13 +1,13 @@
 import mapboxgl from "mapbox-gl";
 import { useEffect, useRef, useState } from "react";
-import MapboxMap, { Source, Layer, MapRef } from "react-map-gl";
+import MapboxMap, { Source, Layer, MapRef, Marker } from "react-map-gl";
 import { useTravelCosts } from "../hooks/useTravelCosts";
 import {
   colorCarFastest,
   colorCarShortest,
   colorTrain,
 } from "../lib/constants";
-import { GeoJson } from "../lib/types";
+import { AlongRouteStation, GeoJson } from "../lib/types";
 import { Color } from "./color";
 
 const layerStyleCarFastest: mapboxgl.LineLayer = {
@@ -67,6 +67,16 @@ const extendBounds = (bounds: mapboxgl.LngLatBounds, geoJson: GeoJson) => {
   return bounds;
 };
 
+const extendBoundsWithStation = (
+  bounds: mapboxgl.LngLatBounds,
+  station: AlongRouteStation | undefined,
+) => {
+  if (station) {
+    bounds.extend([station.station.lng, station.station.lat]);
+  }
+  return bounds;
+};
+
 type LegendProps = {
   label: string;
   color: string;
@@ -80,6 +90,33 @@ const Legend = (props: LegendProps) => {
     </div>
   );
 };
+
+const formatMarkerPrice = (price: number) =>
+  new Intl.NumberFormat("de-DE", {
+    style: "currency",
+    currency: "EUR",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(price);
+
+const GasStationMarker = ({
+  station,
+  compact,
+}: {
+  station: AlongRouteStation;
+  compact?: boolean;
+}) => (
+  <Marker longitude={station.station.lng} latitude={station.station.lat}>
+    <div
+      className={`rounded-full border border-border bg-card shadow px-2 py-1 ${
+        compact ? "text-[10px]" : "text-xs"
+      }`}
+      title={`${station.station.name} (${formatMarkerPrice(station.station.price)})`}
+    >
+      ⛽ {formatMarkerPrice(station.station.price)}
+    </div>
+  </Marker>
+);
 
 process.env.REACT_APP_MAPBOX_ACCESS_TOKEN =
   process.env.NEXT_PUBLIC_REACT_APP_MAPBOX_ACCESS_TOKEN;
@@ -122,6 +159,11 @@ export const Map = (props) => {
       if (fastestAvailable && result?.carFastest?.geojson) {
         extendBounds(bounds, result.carFastest.geojson);
       }
+
+      extendBoundsWithStation(bounds, result?.carShortest?.station);
+      (result?.fastestOnRouteStations ?? []).forEach((station) =>
+        extendBoundsWithStation(bounds, station),
+      );
 
       mapRef?.current?.getMap()?.fitBounds(bounds, { padding: 40 });
 
@@ -205,6 +247,23 @@ export const Map = (props) => {
               <Layer {...layerStyleCarShortest} />
             </Source>
           )}
+
+          {result?.carShortest?.station && (
+            <GasStationMarker station={result.carShortest.station} />
+          )}
+
+          {(result?.fastestOnRouteStations ?? [])
+            .filter(
+              (station) =>
+                station.station.id !== result?.carShortest?.station?.station.id,
+            )
+            .map((station) => (
+              <GasStationMarker
+                key={`fastest-fuel-${station.station.id}`}
+                station={station}
+                compact
+              />
+            ))}
         </MapboxMap>
       </div>
       <div className="relative z-10 px-4 py-3 flex flex-wrap gap-x-4 gap-y-1 bg-card border-t">
