@@ -26,7 +26,7 @@ export default function Home() {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">

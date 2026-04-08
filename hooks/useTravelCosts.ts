@@ -4,7 +4,7 @@ import { useImmer } from 'use-immer';
 import { getJSON } from '../lib/helper';
 
 import { useAppContext } from '../lib/store';
-import { AlongRouteStation, CarResult, HafasResult, HvvResult, Position } from '../lib/types';
+import { AlongRouteStation, CarResult, DbResults, HvvResult, Position } from '../lib/types';
 import { useDirections } from './useDirections';
 import { useGeocode } from './useGeocode';
 import { useDeutscheBahn } from './useDeutscheBahn';
@@ -23,7 +23,7 @@ type Result = {
   carShortest?: CarResult;
   carFastest?: CarResult;
   hvv?: HvvResult;
-  db?: HafasResult;
+  db?: DbResults;
   fuelPrice?: number;
   start?: Position;
   dest?: Position;
@@ -113,7 +113,6 @@ export const useTravelCosts = () => {
       }
 
       if (JSON.stringify(draft.db) !== JSON.stringify(hafasResult)) {
-        // @ts-ignore
         draft.db = hafasResult;
       }
 

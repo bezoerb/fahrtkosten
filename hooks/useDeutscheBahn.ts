@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import useSWR from 'swr/immutable';
 import { getJSON } from '../lib/helper';
 import { useAppContext } from '../lib/store';
-import type { FptfStopOrStation, FptfJourney, HafasResult, Location } from '../lib/types';
+import type { FptfStopOrStation, FptfJourney, DbResults, Location } from '../lib/types';
 
 const getCoords = (stop: FptfStopOrStation | undefined): [number, number] | null => {
   if (!stop) return null;
@@ -49,7 +49,7 @@ const getGeoJson = (journey: FptfJourney): FeatureCollection | undefined => {
 };
 
 export const useDeutscheBahn = (start: Location | undefined, end: Location | undefined) => {
-  const [result, setResult] = useState<HafasResult>();
+  const [result, setResult] = useState<DbResults>();
 
   const input = useAppContext((state) => state.input);
 
@@ -112,34 +112,48 @@ export const useDeutscheBahn = (start: Location | undefined, end: Location | und
   );
 
   useEffect(() => {
-    const priceAdults = swrAdults?.data?.[0]?.price;
-    const priceChildren = swrChildren?.data?.[0]?.price;
+    const adultJourneys = swrAdults?.data ?? [];
+    const childJourneys = swrChildren?.data ?? [];
 
-    if (!priceAdults && !priceChildren) {
-      setResult({
-        duration: 0,
-        changes: 0,
-        price: 0,
-      });
+    if (adultJourneys.length === 0 && childJourneys.length === 0) {
+      setResult(undefined);
       return;
     }
 
-    const journey = swrAdults?.data?.[0] || swrChildren?.data?.[0];
+    const baseJourneys = adultJourneys.length > 0 ? adultJourneys : childJourneys;
 
-    const price =
-      (priceAdults?.amount ?? 0) * (input.adults || 0) + (priceChildren?.amount ?? 0) * (input.children || 0);
+    const journeys = baseJourneys.map((journey, i) => {
+      const adultPrice = adultJourneys[i]?.price?.amount ?? 0;
+      const childPrice = childJourneys[i]?.price?.amount ?? 0;
+      const price =
+        adultPrice * (input.adults || 0) + childPrice * (input.children || 0);
 
-    const plannedDeparture = new Date(journey?.legs?.[0]?.plannedDeparture ?? 0);
-    const plannedArrival = new Date(journey?.legs?.[(journey?.legs?.length ?? 1) - 1]?.plannedArrival ?? 0);
-    const duration = (+plannedArrival - +plannedDeparture) / (1000 * 60);
-    const changes = (journey?.legs?.filter(leg => !leg.walking).length ?? 1) - 1;
+      const plannedDeparture = new Date(journey.legs?.[0]?.plannedDeparture ?? 0);
+      const plannedArrival = new Date(journey.legs?.[(journey.legs?.length ?? 1) - 1]?.plannedArrival ?? 0);
+      const duration = (+plannedArrival - +plannedDeparture) / (1000 * 60);
+      const changes = (journey.legs?.filter(leg => !leg.walking).length ?? 1) - 1;
 
-    setResult({
-      duration,
-      changes,
-      price: price * (input.twoWay ? 2 : 1),
-      geojson: journey ? getGeoJson(journey) : undefined,
+      return {
+        duration,
+        changes,
+        price: price * (input.twoWay ? 2 : 1),
+        geojson: getGeoJson(journey),
+      };
+    }).filter(j => j.duration > 0 && j.price > 0);
+
+    if (journeys.length === 0) {
+      setResult(undefined);
+      return;
+    }
+
+    const cheapest = journeys.reduce((a, b) => (a.price <= b.price ? a : b));
+    const best = journeys.reduce((a, b) => {
+      const scoreA = a.price + a.duration;
+      const scoreB = b.price + b.duration;
+      return scoreA <= scoreB ? a : b;
     });
+
+    setResult({ cheapest, best, journeys });
   }, [swrAdults.data, swrChildren.data, input.twoWay, input.adults, input.children]);
 
   return {

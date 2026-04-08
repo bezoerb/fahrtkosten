@@ -29,6 +29,13 @@ const formatTime = (_minutes: number = 0) => {
   return minutes ? `${minutes} Minute${minutes !== 1 ? "n" : ""}` : "";
 };
 
+const formatTimeShort = (_minutes: number = 0) => {
+  const minutes = Math.round(_minutes || 0);
+  if (minutes < 45) return `${minutes} min`;
+  const halfHours = Math.round(minutes / 30) / 2;
+  return halfHours % 1 === 0 ? `${halfHours} Stunden` : `${halfHours.toLocaleString('de-DE')} Stunden`;
+};
+
 const formatDistance = (distance: number = 0) =>
   new Intl.NumberFormat("de-DE", {
     style: "unit",
@@ -57,7 +64,6 @@ const ResultComponent = (props) => {
     result?.hvv?.duration ? result?.hvv?.price : Infinity,
     result?.carShortest?.price ?? Infinity,
     result?.carFastest?.price ?? Infinity,
-    result?.db?.price ?? Infinity,
   );
 
   return (
@@ -75,42 +81,57 @@ const ResultComponent = (props) => {
 
       <div className="space-y-4">
         {/* Deutsche Bahn */}
-        {Boolean(result?.db?.duration) && (
-          <Card
-            className={
-              result?.db?.price === cheapest ? "ring-2 ring-emerald-500/50" : ""
-            }
-          >
-            <CardHeader className="pb-2 pt-4 px-4">
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Train className="h-4 w-4" />
-                  Deutsche Bahn
-                </CardTitle>
-                <div className="flex items-center gap-2">
-                  {result?.db?.price === cheapest && (
-                    <Badge variant="success">Günstigste</Badge>
-                  )}
-                  <span className="text-lg font-bold">
-                    {result?.db?.price ? formatPrice(result.db.price) : "-"}
+        {Boolean(result?.db?.journeys?.length) && (() => {
+          const journeys = result.db!.journeys;
+          const minPrice = Math.min(...journeys.map(j => j.price));
+          const maxPrice = Math.max(...journeys.map(j => j.price));
+          const minDuration = Math.min(...journeys.map(j => j.duration));
+          const maxDuration = Math.max(...journeys.map(j => j.duration));
+          const minChanges = Math.min(...journeys.map(j => j.changes));
+          const maxChanges = Math.max(...journeys.map(j => j.changes));
+          const hasRange = minPrice !== maxPrice || minDuration !== maxDuration;
+
+          return (
+            <Card>
+              <CardHeader className="pb-2 pt-4 px-4">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Train className="h-4 w-4" />
+                    Deutsche Bahn
+                    <span className="text-xs font-normal text-muted-foreground">
+                      ({journeys.length} Verbindungen)
+                    </span>
+                  </CardTitle>
+                  <span className="text-lg font-bold whitespace-nowrap">
+                    {hasRange
+                      ? `${formatPrice(minPrice)} – ${formatPrice(maxPrice)}`
+                      : formatPrice(minPrice)}
                   </span>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent className="px-4 pb-4">
-              <div className="divide-y">
-                <InfoRow
-                  label="Dauer (einfach)"
-                  value={formatTime(result?.db?.duration)}
-                />
-                <InfoRow
-                  label="Umstiege"
-                  value={String(result.db?.changes ?? 0)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        )}
+              </CardHeader>
+              <CardContent className="px-4 pb-4">
+                <div className="divide-y">
+                  <InfoRow
+                    label="Dauer"
+                    value={
+                      minDuration !== maxDuration
+                        ? `${formatTimeShort(minDuration)} – ${formatTimeShort(maxDuration)}`
+                        : formatTimeShort(minDuration)
+                    }
+                  />
+                  <InfoRow
+                    label="Umstiege"
+                    value={
+                      minChanges !== maxChanges
+                        ? `${minChanges} – ${maxChanges}`
+                        : String(minChanges)
+                    }
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         {/* HVV */}
         {Boolean(result?.hvv?.duration) && (
@@ -193,7 +214,7 @@ const ResultComponent = (props) => {
                   <Car className="h-4 w-4" />
                   Auto
                   <span className="text-xs font-normal text-muted-foreground">
-                    {result.fuelPrice != null && (<>(<FuelPrice price={result.fuelPrice} suffix=" €/l" />)</>)}
+                    {result.fuelPrice != null && (<>(<FuelPrice price={result.fuelPrice} suffix={"\u2009€/l"} />)</>)}
                   </span>
                 </CardTitle>
                 {result?.carShortest?.distance ===

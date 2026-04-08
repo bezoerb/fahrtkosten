@@ -105,9 +105,7 @@ export const FuelPrice = ({ price, suffix }: { price: number; suffix?: string })
   const last = formatted.slice(-1);
   return (
     <span>
-      {main.replace(".", ",")}
-      <sup>{last}</sup>
-      {suffix ?? " €"}
+      {main.replace(".", ",")}{last}{suffix ?? "\u2009€/l"}
     </span>
   );
 };
@@ -162,7 +160,7 @@ export const Map = (props) => {
       );
 
       const trainAvailable =
-        Boolean(result?.hvv?.duration) || Boolean(result?.db?.geojson);
+        Boolean(result?.hvv?.duration) || Boolean(result?.db?.cheapest?.geojson);
       const fastestAvailable =
         Boolean(result?.carFastest?.duration) &&
         result?.carFastest?.distance !== result?.carShortest?.distance;
@@ -171,7 +169,7 @@ export const Map = (props) => {
       if (trainAvailable) {
         const trainGeoJson = result?.hvv?.duration
           ? result?.hvv?.geojson
-          : result?.db?.geojson;
+          : result?.db?.cheapest?.geojson;
         if (trainGeoJson) {
           extendBounds(bounds, trainGeoJson);
         }
@@ -240,12 +238,12 @@ export const Map = (props) => {
               <Layer {...layerStyleTrain} />
             </Source>
           )}
-          {!result?.hvv?.duration && result?.db?.geojson && (
+          {!result?.hvv?.duration && result?.db?.cheapest?.geojson && (
             <Source
               id="geojson-train"
               key="geojson-train"
               type="geojson"
-              data={result?.db?.geojson}
+              data={result?.db?.cheapest?.geojson}
             >
               <Layer {...layerStyleTrain} />
             </Source>
